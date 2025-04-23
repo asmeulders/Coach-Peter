@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+#TODO####################################################################
 from playlist.db import db
 from playlist.utils.logger import configure_logger
 from playlist.utils.api_utils import get_random
@@ -10,9 +11,9 @@ from playlist.utils.api_utils import get_random
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
-
-class Songs(db.Model):
-    """Represents a song in the catalog.
+#TODO####################################################################
+class Goals(db.Model):
+    """Represents a goal in the plan.
 
     This model maps to the 'songs' table and stores metadata such as artist,
     title, genre, release year, and duration. It also tracks play count.
@@ -22,17 +23,18 @@ class Songs(db.Model):
     """
 
     __tablename__ = "Songs"
-
+    
+    #Change types for each parameter####################################
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    artist = db.Column(db.String, nullable=False)
-    title = db.Column(db.String, nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    genre = db.Column(db.String, nullable=False)
-    duration = db.Column(db.Integer, nullable=False)
-    play_count = db.Column(db.Integer, nullable=False, default=0)
+    nutritional = db.Column(db.String, nullable=False)
+    fitness = db.Column(db.String, nullable=False)
+    recurring = db.Column(db.Integer, nullable=False)
+    one_time = db.Column(db.String, nullable=False)
+    upper_body = db.Column(db.Integer, nullable=False)
+    # play_count = db.Column(db.Integer, nullable=False, default=0)
 
     def validate(self) -> None:
-        """Validates the song instance before committing to the database.
+        """Validates the goal instance before committing to the database.
 
         Raises:
             ValueError: If any required fields are invalid.
