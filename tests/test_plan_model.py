@@ -1,7 +1,7 @@
 import pytest
 
-from playlist.models.playlist_model import PlaylistModel
-from playlist.models.song_model import Songs
+from coach_peter.models.plan_model import PlanModel
+from coach_peter.models.goal_model import Goals
 
 
 @pytest.fixture()
