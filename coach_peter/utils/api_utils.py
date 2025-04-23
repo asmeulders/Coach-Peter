@@ -2,11 +2,11 @@ import logging
 import os
 import requests
 
-from playlist.utils.logger import configure_logger
+from coach_peter.utils.logger import configure_logger
 
 
-RANDOM_ORG_BASE_URL = os.getenv("RANDOM_ORG_BASE_URL",
-                                "https://www.random.org/integers/?num=1&min=1&col=1&base=10&format=plain&rnd=new")
+WERG_BASE_URL = os.getenv("WERG_BASE URL",
+                                "https://wger.de/api/v2/routine/")
 
 
 logger = logging.getLogger(__name__)
