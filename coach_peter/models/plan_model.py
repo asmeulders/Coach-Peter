@@ -3,440 +3,440 @@ import os
 import time
 from typing import List
 
-from playlist.models.song_model import Songs
-from playlist.utils.api_utils import get_random
-from playlist.utils.logger import configure_logger
+from coach_peter.models.goal_model import Goals
+from coach_peter.utils.api_utils import get_random
+from coach_peter.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
 
-class PlaylistModel:
+class PlanModel:
     """
-    A class to manage a playlist of songs.
+    A class to manage a fitness plan consisting of goals.
 
     """
 
     def __init__(self):
-        """Initializes the PlaylistModel with an empty playlist and the current track set to 1.
+        """Initializes the PlanModel with an empty plan (and the current track set to 1).
 
-        The playlist is a list of Songs, and the current track number is 1-indexed.
-        The TTL (Time To Live) for song caching is set to a default value from the environment variable "TTL",
-        which defaults to 60 seconds if not set.
+        The plan is a list of Goals(, and the current track number is 1-indexed).
+        (The TTL (Time To Live) for goal caching is set to a default value from the environment variable "TTL",
+        which defaults to 60 seconds if not set.)
 
         """
-        self.current_track_number = 1
-        self.playlist: List[int] = []
-        self._song_cache: dict[int, Songs] = {}
-        self._ttl: dict[int, float] = {}
-        self.ttl_seconds = int(os.getenv("TTL", 60))  # Default TTL is 60 seconds
+        # self.current_track_number = 1
+        self.plan: List[int] = []
+        self._goal_cache: dict[int, Goals] = {}
+        # self._ttl: dict[int, float] = {}
+        # self.ttl_seconds = int(os.getenv("TTL", 60))  # Default TTL is 60 seconds
 
 
     ##################################################
-    # Song Management Functions
+    # goal Management Functions
     ##################################################
 
-    def _get_song_from_cache_or_db(self, song_id: int) -> Songs:
+    def _get_goal_from_cache_or_db(self, goal_id: int) -> Goals:
         """
-        Retrieves a song by ID, using the internal cache if possible.
+        Retrieves a goal by ID, using the internal cache if possible.
 
-        This method checks whether a cached version of the song is available
-        and still valid. If not, it queries the database, updates the cache, and returns the song.
+        This method checks whether a cached version of the goal is available
+        and still valid. If not, it queries the database, updates the cache, and returns the goal.
 
         Args:
-            song_id (int): The unique ID of the song to retrieve.
+            goal_id (int): The unique ID of the goal to retrieve.
 
         Returns:
-            Songs: The song object corresponding to the given ID.
+            Goals: The goal object corresponding to the given ID.
 
         Raises:
-            ValueError: If the song cannot be found in the database.
+            ValueError: If the goal cannot be found in the database.
         """
         now = time.time()
 
-        if song_id in self._song_cache and self._ttl.get(song_id, 0) > now:
-            logger.debug(f"Song ID {song_id} retrieved from cache")
-            return self._song_cache[song_id]
+        if goal_id in self._goal_cache: # and self._ttl.get(goal_id, 0) > now:
+            logger.debug(f"Goal ID {goal_id} retrieved from cache")
+            return self._goal_cache[goal_id]
 
         try:
-            song = Songs.get_song_by_id(song_id)
-            logger.info(f"Song ID {song_id} loaded from DB")
+            goal = Goals.get_goal_by_id(goal_id)
+            logger.info(f"Goal ID {goal_id} loaded from DB")
         except ValueError as e:
-            logger.error(f"Song ID {song_id} not found in DB: {e}")
-            raise ValueError(f"Song ID {song_id} not found in database") from e
+            logger.error(f"Goal ID {goal_id} not found in DB: {e}")
+            raise ValueError(f"Goal ID {goal_id} not found in database") from e
 
-        self._song_cache[song_id] = song
-        self._ttl[song_id] = now + self.ttl_seconds
-        return song
+        self._goal_cache[goal_id] = goal
+        # self._ttl[goal_id] = now + self.ttl_seconds
+        return goal
 
-    def add_song_to_playlist(self, song_id: int) -> None:
+    def add_goal_to_plan(self, goal_id: int) -> None:
         """
-        Adds a song to the playlist by ID, using the cache or database lookup.
+        Adds a goal to the plan by ID, using the cache or database lookup.
 
         Args:
-            song_id (int): The ID of the song to add to the playlist.
+            goal_id (int): The ID of the goal to add to the plan.
 
         Raises:
-            ValueError: If the song ID is invalid or already exists in the playlist.
+            ValueError: If the goal ID is invalid or already exists in the plan.
         """
-        logger.info(f"Received request to add song with ID {song_id} to the playlist")
+        logger.info(f"Received request to add goal with ID {goal_id} to the plan")
 
-        song_id = self.validate_song_id(song_id, check_in_playlist=False)
+        goal_id = self.validate_goal_id(goal_id, check_in_plan=False)
 
-        if song_id in self.playlist:
-            logger.error(f"Song with ID {song_id} already exists in the playlist")
-            raise ValueError(f"Song with ID {song_id} already exists in the playlist")
+        if goal_id in self.plan:
+            logger.error(f"Goal with ID {goal_id} already exists in the plan")
+            raise ValueError(f"Goal with ID {goal_id} already exists in the plan")
 
         try:
-            song = self._get_song_from_cache_or_db(song_id)
+            goal = self._get_goal_from_cache_or_db(goal_id)
         except ValueError as e:
-            logger.error(f"Failed to add song: {e}")
+            logger.error(f"Failed to add goal: {e}")
             raise
 
-        self.playlist.append(song.id)
-        logger.info(f"Successfully added to playlist: {song.artist} - {song.title} ({song.year})")
+        self.plan.append(goal.id)
+        logger.info(f"Successfully added to plan: ") # {goal.artist} - {goal.title} ({goal.year})")
 
 
-    def remove_song_by_song_id(self, song_id: int) -> None:
-        """Removes a song from the playlist by its song ID.
-
-        Args:
-            song_id (int): The ID of the song to remove from the playlist.
-
-        Raises:
-            ValueError: If the playlist is empty or the song ID is invalid.
-
-        """
-        logger.info(f"Received request to remove song with ID {song_id}")
-
-        self.check_if_empty()
-        song_id = self.validate_song_id(song_id)
-
-        if song_id not in self.playlist:
-            logger.warning(f"Song with ID {song_id} not found in the playlist")
-            raise ValueError(f"Song with ID {song_id} not found in the playlist")
-
-        self.playlist.remove(song_id)
-        logger.info(f"Successfully removed song with ID {song_id} from the playlist")
-
-    def remove_song_by_track_number(self, track_number: int) -> None:
-        """Removes a song from the playlist by its track number (1-indexed).
+    def remove_goal_by_goal_id(self, goal_id: int) -> None:
+        """Removes a goal from the plan by its goal ID.
 
         Args:
-            track_number (int): The track number of the song to remove.
+            goal_id (int): The ID of the goal to remove from the plan.
 
         Raises:
-            ValueError: If the playlist is empty or the track number is invalid.
+            ValueError: If the plan is empty or the goal ID is invalid.
 
         """
-        logger.info(f"Received request to remove song at track number {track_number}")
+        logger.info(f"Received request to remove goal with ID {goal_id}")
 
         self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        playlist_index = track_number - 1
+        goal_id = self.validate_goal_id(goal_id)
 
-        logger.info(f"Successfully removed song at track number {track_number}")
-        del self.playlist[playlist_index]
+        if goal_id not in self.plan:
+            logger.warning(f"Goal with ID {goal_id} not found in the plan")
+            raise ValueError(f"Goal with ID {goal_id} not found in the plan")
 
-    def clear_playlist(self) -> None:
-        """Clears all songs from the playlist.
+        self.plan.remove(goal_id)
+        logger.info(f"Successfully removed goal with ID {goal_id} from the plan")
 
-        Clears all songs from the playlist. If the playlist is already empty, logs a warning.
+    # def remove_goal_by_track_number(self, track_number: int) -> None:
+    #     """Removes a goal from the plan by its track number (1-indexed).
+
+    #     Args:
+    #         track_number (int): The track number of the goal to remove.
+
+    #     Raises:
+    #         ValueError: If the plan is empty or the track number is invalid.
+
+    #     """
+    #     logger.info(f"Received request to remove goal at track number {track_number}")
+
+    #     self.check_if_empty()
+    #     track_number = self.validate_track_number(track_number)
+    #     plan_index = track_number - 1
+
+    #     logger.info(f"Successfully removed goal at track number {track_number}")
+    #     del self.plan[plan_index]
+
+    def clear_plan(self) -> None:
+        """Clears all goals from the plan.
+
+        Clears all goals from the plan. If the plan is already empty, logs a warning.
 
         """
-        logger.info("Received request to clear the playlist")
+        logger.info("Received request to clear the plan")
 
         try:
             if self.check_if_empty():
                 pass
         except ValueError:
-            logger.warning("Clearing an empty playlist")
+            logger.warning("Clearing an empty plan")
 
-        self.playlist.clear()
-        logger.info("Successfully cleared the playlist")
-
-
-    ##################################################
-    # Playlist Retrieval Functions
-    ##################################################
-
-
-    def get_all_songs(self) -> List[Songs]:
-        """Returns a list of all songs in the playlist using cached song data.
-
-        Returns:
-            List[Song]: A list of all songs in the playlist.
-
-        Raises:
-            ValueError: If the playlist is empty.
-        """
-        self.check_if_empty()
-        logger.info("Retrieving all songs in the playlist")
-        return [self._get_song_from_cache_or_db(song_id) for song_id in self.playlist]
-
-    def get_song_by_song_id(self, song_id: int) -> Songs:
-        """Retrieves a song from the playlist by its song ID using the cache or DB.
-
-        Args:
-            song_id (int): The ID of the song to retrieve.
-
-        Returns:
-            Song: The song with the specified ID.
-
-        Raises:
-            ValueError: If the playlist is empty or the song is not found.
-        """
-        self.check_if_empty()
-        song_id = self.validate_song_id(song_id)
-        logger.info(f"Retrieving song with ID {song_id} from the playlist")
-        song = self._get_song_from_cache_or_db(song_id)
-        logger.info(f"Successfully retrieved song: {song.artist} - {song.title} ({song.year})")
-        return song
-
-    def get_song_by_track_number(self, track_number: int) -> Songs:
-        """Retrieves a song from the playlist by its track number (1-indexed).
-
-        Args:
-            track_number (int): The track number of the song to retrieve.
-
-        Returns:
-            Song: The song at the specified track number.
-
-        Raises:
-            ValueError: If the playlist is empty or the track number is invalid.
-        """
-        self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        playlist_index = track_number - 1
-
-        logger.info(f"Retrieving song at track number {track_number} from playlist")
-        song_id = self.playlist[playlist_index]
-        song = self._get_song_from_cache_or_db(song_id)
-        logger.info(f"Successfully retrieved song: {song.artist} - {song.title} ({song.year})")
-        return song
-
-    def get_current_song(self) -> Songs:
-        """Returns the current song being played.
-
-        Returns:
-            Song: The currently playing song.
-
-        Raises:
-            ValueError: If the playlist is empty.
-        """
-        self.check_if_empty()
-        logger.info("Retrieving the current song being played")
-        return self.get_song_by_track_number(self.current_track_number)
-
-    def get_playlist_length(self) -> int:
-        """Returns the number of songs in the playlist.
-
-        Returns:
-            int: The total number of songs in the playlist.
-
-        """
-        length = len(self.playlist)
-        logger.info(f"Retrieving playlist length: {length} songs")
-        return length
-
-    def get_playlist_duration(self) -> int:
-        """
-        Returns the total duration of the playlist in seconds using cached songs.
-
-        Returns:
-            int: The total duration of all songs in the playlist in seconds.
-        """
-        total_duration = sum(self._get_song_from_cache_or_db(song_id).duration for song_id in self.playlist)
-        logger.info(f"Retrieving total playlist duration: {total_duration} seconds")
-        return total_duration
+        self.plan.clear()
+        logger.info("Successfully cleared the plan")
 
 
     ##################################################
-    # Playlist Movement Functions
+    # plan Retrieval Functions
     ##################################################
 
 
-    def go_to_track_number(self, track_number: int) -> None:
-        """Sets the current track number to the specified track number.
+    def get_all_goals(self) -> List[Goals]:
+        """Returns a list of all goals in the plan using cached goal data.
+
+        Returns:
+            List[goal]: A list of all goals in the plan.
+
+        Raises:
+            ValueError: If the plan is empty.
+        """
+        self.check_if_empty()
+        logger.info("Retrieving all goals in the plan")
+        return [self._get_goal_from_cache_or_db(goal_id) for goal_id in self.plan]
+
+    def get_goal_by_goal_id(self, goal_id: int) -> Goals:
+        """Retrieves a goal from the plan by its goal ID using the cache or DB.
 
         Args:
-            track_number (int): The track number to set as the current track.
+            goal_id (int): The ID of the goal to retrieve.
+
+        Returns:
+            goal: The goal with the specified ID.
 
         Raises:
-            ValueError: If the playlist is empty or the track number is invalid.
-
+            ValueError: If the plan is empty or the goal is not found.
         """
         self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        logger.info(f"Setting current track number to {track_number}")
-        self.current_track_number = track_number
+        goal_id = self.validate_goal_id(goal_id)
+        logger.info(f"Retrieving goal with ID {goal_id} from the plan")
+        goal = self._get_goal_from_cache_or_db(goal_id)
+        logger.info(f"Successfully retrieved goal: ") # {goal.artist} - {goal.title} ({goal.year})")
+        return goal
 
-    def go_to_random_track(self) -> None:
-        """Sets the current track number to a randomly selected track.
+    # def get_goal_by_track_number(self, track_number: int) -> Goals:
+    #     """Retrieves a goal from the plan by its track number (1-indexed).
 
-        Raises:
-            ValueError: If the playlist is empty.
+    #     Args:
+    #         track_number (int): The track number of the goal to retrieve.
 
-        """
-        self.check_if_empty()
+    #     Returns:
+    #         goal: The goal at the specified track number.
 
-        # Get a random index using the random.org API
-        random_track = get_random(self.get_playlist_length())
+    #     Raises:
+    #         ValueError: If the plan is empty or the track number is invalid.
+    #     """
+    #     self.check_if_empty()
+    #     track_number = self.validate_track_number(track_number)
+    #     plan_index = track_number - 1
 
-        logger.info(f"Setting current track number to random track: {random_track}")
-        self.current_track_number = random_track
+    #     logger.info(f"Retrieving goal at track number {track_number} from plan")
+    #     goal_id = self.plan[plan_index]
+    #     goal = self._get_goal_from_cache_or_db(goal_id)
+    #     logger.info(f"Successfully retrieved goal: {goal.artist} - {goal.title} ({goal.year})")
+    #     return goal
 
-    def move_song_to_beginning(self, song_id: int) -> None:
-        """Moves a song to the beginning of the playlist.
+    # def get_current_goal(self) -> Goals:
+    #     """Returns the current goal being played.
 
-        Args:
-            song_id (int): The ID of the song to move.
+    #     Returns:
+    #         goal: The currently playing goal.
 
-        Raises:
-            ValueError: If the playlist is empty or the song ID is invalid.
+    #     Raises:
+    #         ValueError: If the plan is empty.
+    #     """
+    #     self.check_if_empty()
+    #     logger.info("Retrieving the current goal being played")
+    #     return self.get_goal_by_track_number(self.current_track_number)
 
-        """
-        logger.info(f"Moving song with ID {song_id} to the beginning of the playlist")
-        self.check_if_empty()
-        song_id = self.validate_song_id(song_id)
+    # def get_plan_length(self) -> int:
+    #     """Returns the number of goals in the plan.
 
-        self.playlist.remove(song_id)
-        self.playlist.insert(0, song_id)
+    #     Returns:
+    #         int: The total number of goals in the plan.
 
-        logger.info(f"Successfully moved song with ID {song_id} to the beginning")
+    #     """
+    #     length = len(self.plan)
+    #     logger.info(f"Retrieving plan length: {length} goals")
+    #     return length
 
-    def move_song_to_end(self, song_id: int) -> None:
-        """Moves a song to the end of the playlist.
+    # def get_plan_duration(self) -> int:
+    #     """
+    #     Returns the total duration of the plan in seconds using cached goals.
 
-        Args:
-            song_id (int): The ID of the song to move.
-
-        Raises:
-            ValueError: If the playlist is empty or the song ID is invalid.
-
-        """
-        logger.info(f"Moving song with ID {song_id} to the end of the playlist")
-        self.check_if_empty()
-        song_id = self.validate_song_id(song_id)
-
-        self.playlist.remove(song_id)
-        self.playlist.append(song_id)
-
-        logger.info(f"Successfully moved song with ID {song_id} to the end")
-
-    def move_song_to_track_number(self, song_id: int, track_number: int) -> None:
-        """Moves a song to a specific track number in the playlist.
-
-        Args:
-            song_id (int): The ID of the song to move.
-            track_number (int): The track number to move the song to (1-indexed).
-
-        Raises:
-            ValueError: If the playlist is empty, the song ID is invalid, or the track number is out of range.
-
-        """
-        logger.info(f"Moving song with ID {song_id} to track number {track_number}")
-        self.check_if_empty()
-        song_id = self.validate_song_id(song_id)
-        track_number = self.validate_track_number(track_number)
-
-        playlist_index = track_number - 1
-
-        self.playlist.remove(song_id)
-        self.playlist.insert(playlist_index, song_id)
-
-        logger.info(f"Successfully moved song with ID {song_id} to track number {track_number}")
-
-    def swap_songs_in_playlist(self, song1_id: int, song2_id: int) -> None:
-        """Swaps the positions of two songs in the playlist.
-
-        Args:
-            song1_id (int): The ID of the first song to swap.
-            song2_id (int): The ID of the second song to swap.
-
-        Raises:
-            ValueError: If the playlist is empty, either song ID is invalid, or attempting to swap the same song.
-
-        """
-        logger.info(f"Swapping songs with IDs {song1_id} and {song2_id}")
-        self.check_if_empty()
-        song1_id = self.validate_song_id(song1_id)
-        song2_id = self.validate_song_id(song2_id)
-
-        if song1_id == song2_id:
-            logger.error(f"Cannot swap a song with itself: {song1_id}")
-            raise ValueError(f"Cannot swap a song with itself: {song1_id}")
-
-        index1, index2 = self.playlist.index(song1_id), self.playlist.index(song2_id)
-
-        self.playlist[index1], self.playlist[index2] = self.playlist[index2], self.playlist[index1]
-
-        logger.info(f"Successfully swapped songs with IDs {song1_id} and {song2_id}")
+    #     Returns:
+    #         int: The total duration of all goals in the plan in seconds.
+    #     """
+    #     total_duration = sum(self._get_goal_from_cache_or_db(goal_id).duration for goal_id in self.plan)
+    #     logger.info(f"Retrieving total plan duration: {total_duration} seconds")
+    #     return total_duration
 
 
     ##################################################
-    # Playlist Playback Functions
+    # plan Movement Functions
     ##################################################
 
 
-    def play_current_song(self) -> None:
-        """Plays the current song and advances the playlist.
+    # def go_to_track_number(self, track_number: int) -> None:
+    #     """Sets the current track number to the specified track number.
 
-        Raises:
-            ValueError: If the playlist is empty.
+    #     Args:
+    #         track_number (int): The track number to set as the current track.
 
-        """
-        self.check_if_empty()
-        current_song = self.get_song_by_track_number(self.current_track_number)
+    #     Raises:
+    #         ValueError: If the plan is empty or the track number is invalid.
 
-        logger.info(f"Playing song: {current_song.title} (ID: {current_song.id}) at track number: {self.current_track_number}")
-        current_song.update_play_count()
-        logger.info(f"Updated play count for song: {current_song.title} (ID: {current_song.id})")
+    #     """
+    #     self.check_if_empty()
+    #     track_number = self.validate_track_number(track_number)
+    #     logger.info(f"Setting current track number to {track_number}")
+    #     self.current_track_number = track_number
 
-        self.current_track_number = (self.current_track_number % self.get_playlist_length()) + 1
-        logger.info(f"Advanced to track number: {self.current_track_number}")
+    # def go_to_random_track(self) -> None:
+    #     """Sets the current track number to a randomly selected track.
 
-    def play_entire_playlist(self) -> None:
-        """Plays all songs in the playlist from the beginning.
+    #     Raises:
+    #         ValueError: If the plan is empty.
 
-        Raises:
-            ValueError: If the playlist is empty.
+    #     """
+    #     self.check_if_empty()
 
-        """
-        self.check_if_empty()
-        logger.info("Starting to play the entire playlist.")
+    #     # Get a random index using the random.org API
+    #     random_track = get_random(self.get_plan_length())
 
-        self.current_track_number = 1
-        for _ in range(self.get_playlist_length()):
-            self.play_current_song()
+    #     logger.info(f"Setting current track number to random track: {random_track}")
+    #     self.current_track_number = random_track
 
-        logger.info("Finished playing the entire playlist.")
+    # def move_goal_to_beginning(self, goal_id: int) -> None:
+    #     """Moves a goal to the beginning of the plan.
 
-    def play_rest_of_playlist(self) -> None:
-        """Plays the remaining songs in the playlist from the current track onward.
+    #     Args:
+    #         goal_id (int): The ID of the goal to move.
 
-        Raises:
-            ValueError: If the playlist is empty.
+    #     Raises:
+    #         ValueError: If the plan is empty or the goal ID is invalid.
 
-        """
-        self.check_if_empty()
-        logger.info(f"Playing the rest of the playlist from track number: {self.current_track_number}")
+    #     """
+    #     logger.info(f"Moving goal with ID {goal_id} to the beginning of the plan")
+    #     self.check_if_empty()
+    #     goal_id = self.validate_goal_id(goal_id)
 
-        for _ in range(self.get_playlist_length() - self.current_track_number + 1):
-            self.play_current_song()
+    #     self.plan.remove(goal_id)
+    #     self.plan.insert(0, goal_id)
 
-        logger.info("Finished playing the rest of the playlist.")
+    #     logger.info(f"Successfully moved goal with ID {goal_id} to the beginning")
 
-    def rewind_playlist(self) -> None:
-        """Resets the playlist to the first track.
+    # def move_goal_to_end(self, goal_id: int) -> None:
+    #     """Moves a goal to the end of the plan.
 
-        Raises:
-            ValueError: If the playlist is empty.
+    #     Args:
+    #         goal_id (int): The ID of the goal to move.
 
-        """
-        self.check_if_empty()
-        self.current_track_number = 1
-        logger.info("Rewound playlist to the first track.")
+    #     Raises:
+    #         ValueError: If the plan is empty or the goal ID is invalid.
+
+    #     """
+    #     logger.info(f"Moving goal with ID {goal_id} to the end of the plan")
+    #     self.check_if_empty()
+    #     goal_id = self.validate_goal_id(goal_id)
+
+    #     self.plan.remove(goal_id)
+    #     self.plan.append(goal_id)
+
+    #     logger.info(f"Successfully moved goal with ID {goal_id} to the end")
+
+    # def move_goal_to_track_number(self, goal_id: int, track_number: int) -> None:
+    #     """Moves a goal to a specific track number in the plan.
+
+    #     Args:
+    #         goal_id (int): The ID of the goal to move.
+    #         track_number (int): The track number to move the goal to (1-indexed).
+
+    #     Raises:
+    #         ValueError: If the plan is empty, the goal ID is invalid, or the track number is out of range.
+
+    #     """
+    #     logger.info(f"Moving goal with ID {goal_id} to track number {track_number}")
+    #     self.check_if_empty()
+    #     goal_id = self.validate_goal_id(goal_id)
+    #     track_number = self.validate_track_number(track_number)
+
+    #     plan_index = track_number - 1
+
+    #     self.plan.remove(goal_id)
+    #     self.plan.insert(plan_index, goal_id)
+
+    #     logger.info(f"Successfully moved goal with ID {goal_id} to track number {track_number}")
+
+    # def swap_goals_in_plan(self, goal1_id: int, goal2_id: int) -> None:
+    #     """Swaps the positions of two goals in the plan.
+
+    #     Args:
+    #         goal1_id (int): The ID of the first goal to swap.
+    #         goal2_id (int): The ID of the second goal to swap.
+
+    #     Raises:
+    #         ValueError: If the plan is empty, either goal ID is invalid, or attempting to swap the same goal.
+
+    #     """
+    #     logger.info(f"Swapping goals with IDs {goal1_id} and {goal2_id}")
+    #     self.check_if_empty()
+    #     goal1_id = self.validate_goal_id(goal1_id)
+    #     goal2_id = self.validate_goal_id(goal2_id)
+
+    #     if goal1_id == goal2_id:
+    #         logger.error(f"Cannot swap a goal with itself: {goal1_id}")
+    #         raise ValueError(f"Cannot swap a goal with itself: {goal1_id}")
+
+    #     index1, index2 = self.plan.index(goal1_id), self.plan.index(goal2_id)
+
+    #     self.plan[index1], self.plan[index2] = self.plan[index2], self.plan[index1]
+
+    #     logger.info(f"Successfully swapped goals with IDs {goal1_id} and {goal2_id}")
+
+
+    ##################################################
+    # plan Playback Functions
+    ##################################################
+
+
+    # def play_current_goal(self) -> None:
+    #     """Plays the current goal and advances the plan.
+
+    #     Raises:
+    #         ValueError: If the plan is empty.
+
+    #     """
+    #     self.check_if_empty()
+    #     current_goal = self.get_goal_by_track_number(self.current_track_number)
+
+    #     logger.info(f"Playing goal: {current_goal.title} (ID: {current_goal.id}) at track number: {self.current_track_number}")
+    #     current_goal.update_play_count()
+    #     logger.info(f"Updated play count for goal: {current_goal.title} (ID: {current_goal.id})")
+
+    #     self.current_track_number = (self.current_track_number % self.get_plan_length()) + 1
+    #     logger.info(f"Advanced to track number: {self.current_track_number}")
+
+    # def play_entire_plan(self) -> None:
+    #     """Plays all goals in the plan from the beginning.
+
+    #     Raises:
+    #         ValueError: If the plan is empty.
+
+    #     """
+    #     self.check_if_empty()
+    #     logger.info("Starting to play the entire plan.")
+
+    #     self.current_track_number = 1
+    #     for _ in range(self.get_plan_length()):
+    #         self.play_current_goal()
+
+    #     logger.info("Finished playing the entire plan.")
+
+    # def play_rest_of_plan(self) -> None:
+    #     """Plays the remaining goals in the plan from the current track onward.
+
+    #     Raises:
+    #         ValueError: If the plan is empty.
+
+    #     """
+    #     self.check_if_empty()
+    #     logger.info(f"Playing the rest of the plan from track number: {self.current_track_number}")
+
+    #     for _ in range(self.get_plan_length() - self.current_track_number + 1):
+    #         self.play_current_goal()
+
+    #     logger.info("Finished playing the rest of the plan.")
+
+    # def rewind_plan(self) -> None:
+    #     """Resets the plan to the first track.
+
+    #     Raises:
+    #         ValueError: If the plan is empty.
+
+    #     """
+    #     self.check_if_empty()
+    #     self.current_track_number = 1
+    #     logger.info("Rewound plan to the first track.")
 
 
     ##################################################
@@ -451,75 +451,75 @@ class PlaylistModel:
     #
     ####################################################################################################
 
-    def validate_song_id(self, song_id: int, check_in_playlist: bool = True) -> int:
+    def validate_goal_id(self, goal_id: int, check_in_plan: bool = True) -> int:
         """
-        Validates the given song ID.
+        Validates the given goal ID.
 
         Args:
-            song_id (int): The song ID to validate.
-            check_in_playlist (bool, optional): If True, verifies the ID is present in the playlist.
+            goal_id (int): The goal ID to validate.
+            check_in_plan (bool, optional): If True, verifies the ID is present in the plan.
                                                 If False, skips that check. Defaults to True.
 
         Returns:
-            int: The validated song ID.
+            int: The validated goal ID.
 
         Raises:
-            ValueError: If the song ID is not a non-negative integer,
-                        not found in the playlist (if check_in_playlist=True),
+            ValueError: If the goal ID is not a non-negative integer,
+                        not found in the plan (if check_in_plan=True),
                         or not found in the database.
         """
         try:
-            song_id = int(song_id)
-            if song_id < 0:
+            goal_id = int(goal_id)
+            if goal_id < 0:
                 raise ValueError
         except ValueError:
-            logger.error(f"Invalid song id: {song_id}")
-            raise ValueError(f"Invalid song id: {song_id}")
+            logger.error(f"Invalid goal id: {goal_id}")
+            raise ValueError(f"Invalid goal id: {goal_id}")
 
-        if check_in_playlist and song_id not in self.playlist:
-            logger.error(f"Song with id {song_id} not found in playlist")
-            raise ValueError(f"Song with id {song_id} not found in playlist")
+        if check_in_plan and goal_id not in self.plan:
+            logger.error(f"goal with id {goal_id} not found in plan")
+            raise ValueError(f"goal with id {goal_id} not found in plan")
 
         try:
-            self._get_song_from_cache_or_db(song_id)
+            self._get_goal_from_cache_or_db(goal_id)
         except Exception as e:
-            logger.error(f"Song with id {song_id} not found in database: {e}")
-            raise ValueError(f"Song with id {song_id} not found in database")
+            logger.error(f"goal with id {goal_id} not found in database: {e}")
+            raise ValueError(f"goal with id {goal_id} not found in database")
 
-        return song_id
+        return goal_id
 
-    def validate_track_number(self, track_number: int) -> int:
-        """
-        Validates the given track number, ensuring it is within the playlist's range.
+    # def validate_track_number(self, track_number: int) -> int:
+    #     """
+    #     Validates the given track number, ensuring it is within the plan's range.
 
-        Args:
-            track_number (int): The track number to validate.
+    #     Args:
+    #         track_number (int): The track number to validate.
 
-        Returns:
-            int: The validated track number.
+    #     Returns:
+    #         int: The validated track number.
 
-        Raises:
-            ValueError: If the track number is not a valid positive integer or is out of range.
+    #     Raises:
+    #         ValueError: If the track number is not a valid positive integer or is out of range.
 
-        """
-        try:
-            track_number = int(track_number)
-            if not (1 <= track_number <= self.get_playlist_length()):
-                raise ValueError(f"Invalid track number: {track_number}")
-        except ValueError as e:
-            logger.error(f"Invalid track number: {track_number}")
-            raise ValueError(f"Invalid track number: {track_number}") from e
+    #     """
+    #     try:
+    #         track_number = int(track_number)
+    #         if not (1 <= track_number <= self.get_plan_length()):
+    #             raise ValueError(f"Invalid track number: {track_number}")
+    #     except ValueError as e:
+    #         logger.error(f"Invalid track number: {track_number}")
+    #         raise ValueError(f"Invalid track number: {track_number}") from e
 
-        return track_number
+    #     return track_number
 
     def check_if_empty(self) -> None:
         """
-        Checks if the playlist is empty and raises a ValueError if it is.
+        Checks if the plan is empty and raises a ValueError if it is.
 
         Raises:
-            ValueError: If the playlist is empty.
+            ValueError: If the plan is empty.
 
         """
-        if not self.playlist:
-            logger.error("Playlist is empty")
-            raise ValueError("Playlist is empty")
+        if not self.plan:
+            logger.error("plan is empty")
+            raise ValueError("plan is empty")
