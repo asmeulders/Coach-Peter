@@ -51,7 +51,7 @@ def sample_plan(goal_beatles, goal_nirvana): # make a sample playlist
 
 def test_add_goal_to_plan(plan_model, goal_beatles, mocker): # change goal
     """Test adding a goal to the plan."""
-    mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_beatles) # check patch
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_beatles) # check return value
     plan_model.add_goal_to_plan(1)
     assert len(plan_model.plan) == 1
     assert plan_model.plan[0] == 1
@@ -59,7 +59,7 @@ def test_add_goal_to_plan(plan_model, goal_beatles, mocker): # change goal
 
 def test_add_duplicate_goal_to_plan(plan_model, goal_beatles, mocker): # change goal
     """Test error when adding a duplicate goal to the plan by ID."""
-    mocker.patch("plan.models.plan_model.goals.get_goal_by_id", side_effect=[goal_beatles] * 2) # check patch
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", side_effect=[goal_beatles] * 2) # check side effect
     plan_model.add_goal_to_plan(1)
     with pytest.raises(ValueError, match="goal with ID 1 already exists in the plan"):
         plan_model.add_goal_to_plan(1)
@@ -67,7 +67,7 @@ def test_add_duplicate_goal_to_plan(plan_model, goal_beatles, mocker): # change 
 
 def test_remove_goal_from_plan_by_goal_id(plan_model, mocker):
     """Test removing a goal from the plan by goal_id."""
-    mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_beatles) # check patch
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_beatles) # check return value
 
     plan_model.plan = [1,2]
 
@@ -171,7 +171,7 @@ def test_clear_plan(plan_model):
 
 def test_get_all_goals(plan_model, sample_plan, mocker):
     """Test successfully retrieving all goals from the plan."""
-    mocker.patch("plan.models.plan_model.planModel._get_goal_from_cache_or_db", side_effect=sample_plan) # check patch
+    mocker.patch("coach_peter.models.plan_model.PlanModel._get_goal_from_cache_or_db", side_effect=sample_plan) # check side effect
 
     plan_model.plan.extend([1, 2])
 
@@ -184,12 +184,12 @@ def test_get_all_goals(plan_model, sample_plan, mocker):
 
 def test_get_goal_by_goal_id(plan_model, goal_beatles, mocker): # change goal name
     """Test successfully retrieving a goal from the plan by goal ID."""
-    mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_beatles) # check patch
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_beatles) # check return value
     plan_model.plan.append(1)
 
     retrieved_goal = plan_model.get_goal_by_goal_id(1)
 
-    assert retrieved_goal.id == 1 # change assertions based on parameters
+    assert retrieved_goal.id == 1 # change assertions based on parameters of goal
     assert retrieved_goal.title == 'Come Together'
     assert retrieved_goal.artist == 'The Beatles'
     assert retrieved_goal.year == 1969
@@ -248,7 +248,7 @@ def test_check_if_empty_empty_plan(plan_model):
 
 def test_validate_goal_id(plan_model, mocker):
     """Test validate_goal_id does not raise error for valid goal ID."""
-    mocker.patch("plan.models.plan_model.planModel._get_goal_from_cache_or_db", return_value=True) # check patch
+    mocker.patch("coach_peter.models.plan_model.PlanModel._get_goal_from_cache_or_db", return_value=True) # check return value
 
     plan_model.plan.append(1)
     try:
@@ -259,7 +259,7 @@ def test_validate_goal_id(plan_model, mocker):
 
 def test_validate_goal_id_no_check_in_plan(plan_model, mocker): # what is this testing?
     """Test validate_goal_id does not raise error for valid goal ID when the id isn't in the plan."""
-    mocker.patch("plan.models.plan_model.planModel._get_goal_from_cache_or_db", return_value=True) # check patch - change first plan to coach peter and capitalize planModel
+    mocker.patch("coach_peter.models.plan_model.PlanModel._get_goal_from_cache_or_db", return_value=True) # check return value
     try:
         plan_model.validate_goal_id(1, check_in_plan=False)
     except ValueError:
@@ -277,7 +277,7 @@ def test_validate_goal_id_invalid_id(plan_model): # same as above
 
 def test_validate_goal_id_not_in_plan(plan_model, goal_nirvana, mocker): # same as above
     """Test validate_goal_id raises error for goal ID not in the plan."""
-    mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_nirvana)
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_nirvana) # check return value
     plan_model.plan.append(1)
     with pytest.raises(ValueError, match="goal with id 2 not found in plan"):
         plan_model.validate_goal_id(2)
