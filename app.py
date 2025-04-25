@@ -4,11 +4,11 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 
 from config import ProductionConfig
 
-from playlist.db import db
-from playlist.models.song_model import Songs
-from playlist.models.playlist_model import PlaylistModel
-from playlist.models.user_model import Users
-from playlist.utils.logger import configure_logger
+from coach_peter.db import db
+from coach_peter.models.goal_model import Goals
+from coach_peter.models.plan_model import PlanModel
+from coach_peter.models.user_model import Users
+from coach_peter.utils.logger import configure_logger
 
 
 load_dotenv()
@@ -50,7 +50,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             "message": "Authentication required"
         }), 401)
 
-    playlist_model = PlaylistModel()
+    plan_model = PlanModel()
 
     @app.route('/api/health', methods=['GET'])
     def healthcheck() -> Response:
@@ -259,33 +259,33 @@ def create_app(config_class=ProductionConfig) -> Flask:
 
     ##########################################################
     #
-    # Songs
+    # Goals
     #
     ##########################################################
 
-    @app.route('/api/reset-songs', methods=['DELETE'])
-    def reset_songs() -> Response:
-        """Recreate the songs table to delete songs.
+    @app.route('/api/reset-goals', methods=['DELETE'])
+    def reset_goals() -> Response:
+        """Recreate the goals table to delete goals.
 
         Returns:
-            JSON response indicating the success of recreating the Songs table.
+            JSON response indicating the success of recreating the goals table.
 
         Raises:
-            500 error if there is an issue recreating the Songs table.
+            500 error if there is an issue recreating the goals table.
         """
         try:
-            app.logger.info("Received request to recreate Songs table")
+            app.logger.info("Received request to recreate goals table")
             with app.app_context():
-                Songs.__table__.drop(db.engine)
-                Songs.__table__.create(db.engine)
-            app.logger.info("Songs table recreated successfully")
+                Goals.__table__.drop(db.engine)
+                Goals.__table__.create(db.engine)
+            app.logger.info("Goals table recreated successfully")
             return make_response(jsonify({
                 "status": "success",
-                "message": f"Songs table recreated successfully"
+                "message": f"Goals table recreated successfully"
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Songs table recreation failed: {e}")
+            app.logger.error(f"Goals table recreation failed: {e}")
             return make_response(jsonify({
                 "status": "error",
                 "message": "An internal error occurred while deleting users",
@@ -293,32 +293,32 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/create-song', methods=['POST'])
+    @app.route('/api/create-goal', methods=['POST'])
     @login_required
-    def add_song() -> Response:
-        """Route to add a new song to the catalog.
+    def add_goal() -> Response:
+        """Route to add a new goal to the catalog. TODO is catalog right word?
 
         Expected JSON Input:
-            - artist (str): The artist's name.
-            - title (str): The song title.
-            - year (int): The year the song was released.
-            - genre (str): The genre of the song.
-            - duration (int): The duration of the song in seconds.
+            # - artist (str): The artist's name. TODO FIX THIS
+            # - title (str): The goal title.
+            # - year (int): The year the goal was released.
+            # - genre (str): The genre of the goal.
+            # - duration (int): The duration of the goal in seconds.
 
         Returns:
-            JSON response indicating the success of the song addition.
+            JSON response indicating the success of the goal addition.
 
         Raises:
             400 error if input validation fails.
-            500 error if there is an issue adding the song to the playlist.
+            500 error if there is an issue adding the goal to the plan.
 
         """
-        app.logger.info("Received request to add a new song")
+        app.logger.info("Received request to add a new goal")
 
         try:
             data = request.get_json()
 
-            required_fields = ["artist", "title", "year", "genre", "duration"]
+            required_fields = [] # ["artist", "title", "year", "genre", "duration"] TODO
             missing_fields = [field for field in required_fields if field not in data]
 
             if missing_fields:
@@ -328,306 +328,306 @@ def create_app(config_class=ProductionConfig) -> Flask:
                     "message": f"Missing required fields: {', '.join(missing_fields)}"
                 }), 400)
 
-            artist = data["artist"]
-            title = data["title"]
-            year = data["year"]
-            genre = data["genre"]
-            duration = data["duration"]
+            # artist = data["artist"] # TODO once we get params
+            # title = data["title"]
+            # year = data["year"]
+            # genre = data["genre"]
+            # duration = data["duration"]
 
-            if (
-                not isinstance(artist, str)
-                or not isinstance(title, str)
-                or not isinstance(year, int)
-                or not isinstance(genre, str)
-                or not isinstance(duration, int)
-            ):
-                app.logger.warning("Invalid input data types")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Invalid input types: artist/title/genre should be strings, year and duration should be integers"
-                }), 400)
+            # if ( TODO once we get params
+            #     not isinstance(artist, str)
+            #     or not isinstance(title, str)
+            #     or not isinstance(year, int)
+            #     or not isinstance(genre, str)
+            #     or not isinstance(duration, int)
+            # ):
+            #     app.logger.warning("Invalid input data types")
+            #     return make_response(jsonify({
+            #         "status": "error",
+            #         "message": "Invalid input types: artist/title/genre should be strings, year and duration should be integers"
+            #     }), 400)
 
-            app.logger.info(f"Adding song: {artist} - {title} ({year}), Genre: {genre}, Duration: {duration}s")
-            Songs.create_song(artist=artist, title=title, year=year, genre=genre, duration=duration)
+            # app.logger.info(f"Adding goal: {artist} - {title} ({year}), Genre: {genre}, Duration: {duration}s")
+            # goals.create_goal(artist=artist, title=title, year=year, genre=genre, duration=duration)
 
-            app.logger.info(f"Song added successfully: {artist} - {title}")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Song '{title}' by {artist} added successfully"
-            }), 201)
+            # app.logger.info(f"goal added successfully: {artist} - {title}")
+            # return make_response(jsonify({
+            #     "status": "success",
+            #     "message": f"goal '{title}' by {artist} added successfully"
+            # }), 201)
 
         except Exception as e:
-            app.logger.error(f"Failed to add song: {e}")
+            app.logger.error(f"Failed to add goal: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while adding the song",
+                "message": "An internal error occurred while adding the goal",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/delete-song/<int:song_id>', methods=['DELETE'])
+    @app.route('/api/delete-goal/<int:goal_id>', methods=['DELETE'])
     @login_required
-    def delete_song(song_id: int) -> Response:
-        """Route to delete a song by ID.
+    def delete_goal(goal_id: int) -> Response:
+        """Route to delete a goal by ID.
 
         Path Parameter:
-            - song_id (int): The ID of the song to delete.
+            - goal_id (int): The ID of the goal to delete.
 
         Returns:
             JSON response indicating success of the operation.
 
         Raises:
-            400 error if the song does not exist.
-            500 error if there is an issue removing the song from the database.
+            400 error if the goal does not exist.
+            500 error if there is an issue removing the goal from the database.
 
         """
         try:
-            app.logger.info(f"Received request to delete song with ID {song_id}")
+            app.logger.info(f"Received request to delete goal with ID {goal_id}")
 
-            # Check if the song exists before attempting to delete
-            song = Songs.get_song_by_id(song_id)
-            if not song:
-                app.logger.warning(f"Song with ID {song_id} not found.")
+            # Check if the goal exists before attempting to delete
+            goal = Goals.get_goal_by_id(goal_id)
+            if not goal:
+                app.logger.warning(f"goal with ID {goal_id} not found.")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": f"Song with ID {song_id} not found"
+                    "message": f"goal with ID {goal_id} not found"
                 }), 400)
 
-            Songs.delete_song(song_id)
-            app.logger.info(f"Successfully deleted song with ID {song_id}")
+            Goals.delete_goal(goal_id)
+            app.logger.info(f"Successfully deleted goal with ID {goal_id}")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": f"Song with ID {song_id} deleted successfully"
+                "message": f"goal with ID {goal_id} deleted successfully"
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Failed to delete song: {e}")
+            app.logger.error(f"Failed to delete goal: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while deleting the song",
+                "message": "An internal error occurred while deleting the goal",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/get-all-songs-from-catalog', methods=['GET'])
+    @app.route('/api/get-all-goals-from-catalog', methods=['GET'])
     @login_required
-    def get_all_songs() -> Response:
-        """Route to retrieve all songs in the catalog (non-deleted), with an option to sort by play count.
+    def get_all_goals() -> Response:
+        """Route to retrieve all goals in the catalog (non-deleted), # TODO other option? (with an option to sort by play count.)
 
-        Query Parameter:
-            - sort_by_play_count (bool, optional): If true, sort songs by play count.
+        TODO Query Parameter:
+            - sort_by_play_count (bool, optional): If true, sort goals by play count.
 
         Returns:
-            JSON response containing the list of songs.
+            JSON response containing the list of goals.
 
         Raises:
-            500 error if there is an issue retrieving songs from the catalog.
+            500 error if there is an issue retrieving goals from the catalog.
 
         """
         try:
             # Extract query parameter for sorting by play count
-            sort_by_play_count = request.args.get('sort_by_play_count', 'false').lower() == 'true'
+            sort_by_play_count = request.args.get('sort_by_play_count', 'false').lower() == 'true' # TODO remove this?
 
-            app.logger.info(f"Received request to retrieve all songs from catalog (sort_by_play_count={sort_by_play_count})")
+            app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_play_count={sort_by_play_count})")
 
-            songs = Songs.get_all_songs(sort_by_play_count=sort_by_play_count)
+            goals = Goals.get_all_goals(sort_by_play_count=sort_by_play_count)
 
-            app.logger.info(f"Successfully retrieved {len(songs)} songs from the catalog")
+            app.logger.info(f"Successfully retrieved {len(goals)} goals from the catalog")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": "Songs retrieved successfully",
-                "songs": songs
+                "message": "goals retrieved successfully",
+                "goals": goals
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Failed to retrieve songs: {e}")
+            app.logger.error(f"Failed to retrieve goals: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while retrieving songs",
+                "message": "An internal error occurred while retrieving goals",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/get-song-from-catalog-by-id/<int:song_id>', methods=['GET'])
+    @app.route('/api/get-goal-from-catalog-by-id/<int:goal_id>', methods=['GET'])
     @login_required
-    def get_song_by_id(song_id: int) -> Response:
-        """Route to retrieve a song by its ID.
+    def get_goal_by_id(goal_id: int) -> Response:
+        """Route to retrieve a goal by its ID.
 
         Path Parameter:
-            - song_id (int): The ID of the song.
+            - goal_id (int): The ID of the goal.
 
         Returns:
-            JSON response containing the song details.
+            JSON response containing the goal details.
 
         Raises:
-            400 error if the song does not exist.
-            500 error if there is an issue retrieving the song.
+            400 error if the goal does not exist.
+            500 error if there is an issue retrieving the goal.
 
         """
         try:
-            app.logger.info(f"Received request to retrieve song with ID {song_id}")
+            app.logger.info(f"Received request to retrieve goal with ID {goal_id}")
 
-            song = Songs.get_song_by_id(song_id)
-            if not song:
-                app.logger.warning(f"Song with ID {song_id} not found.")
+            goal = Goals.get_goal_by_id(goal_id)
+            if not goal:
+                app.logger.warning(f"Goal with ID {goal_id} not found.")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": f"Song with ID {song_id} not found"
+                    "message": f"Goal with ID {goal_id} not found"
                 }), 400)
 
-            app.logger.info(f"Successfully retrieved song: {song.title} by {song.artist} (ID {song_id})")
+            app.logger.info(f"Successfully retrieved goal: ") # TODO params - {goal.title} by {goal.artist} (ID {goal_id})")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": "Song retrieved successfully",
-                "song": song
+                "message": "goal retrieved successfully",
+                "goal": goal
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Failed to retrieve song by ID: {e}")
+            app.logger.error(f"Failed to retrieve goal by ID: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while retrieving the song",
+                "message": "An internal error occurred while retrieving the goal",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/get-song-from-catalog-by-compound-key', methods=['GET'])
-    @login_required
-    def get_song_by_compound_key() -> Response:
-        """Route to retrieve a song by its compound key (artist, title, year).
+    # @app.route('/api/get-goal-from-catalog-by-compound-key', methods=['GET'])
+    # @login_required
+    # def get_goal_by_compound_key() -> Response:
+    #     """Route to retrieve a goal by its compound key (artist, title, year).
 
-        Query Parameters:
-            - artist (str): The artist's name.
-            - title (str): The song title.
-            - year (int): The year the song was released.
+    #     Query Parameters:
+    #         - artist (str): The artist's name.
+    #         - title (str): The goal title.
+    #         - year (int): The year the goal was released.
 
-        Returns:
-            JSON response containing the song details.
+    #     Returns:
+    #         JSON response containing the goal details.
 
-        Raises:
-            400 error if required query parameters are missing or invalid.
-            500 error if there is an issue retrieving the song.
+    #     Raises:
+    #         400 error if required query parameters are missing or invalid.
+    #         500 error if there is an issue retrieving the goal.
 
-        """
-        try:
-            artist = request.args.get('artist')
-            title = request.args.get('title')
-            year = request.args.get('year')
+    #     """
+    #     try:
+    #         artist = request.args.get('artist')
+    #         title = request.args.get('title')
+    #         year = request.args.get('year')
 
-            if not artist or not title or not year:
-                app.logger.warning("Missing required query parameters: artist, title, year")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Missing required query parameters: artist, title, year"
-                }), 400)
+    #         if not artist or not title or not year:
+    #             app.logger.warning("Missing required query parameters: artist, title, year")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "Missing required query parameters: artist, title, year"
+    #             }), 400)
 
-            try:
-                year = int(year)
-            except ValueError:
-                app.logger.warning(f"Invalid year format: {year}. Year must be an integer.")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Year must be an integer"
-                }), 400)
+    #         try:
+    #             year = int(year)
+    #         except ValueError:
+    #             app.logger.warning(f"Invalid year format: {year}. Year must be an integer.")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "Year must be an integer"
+    #             }), 400)
 
-            app.logger.info(f"Received request to retrieve song by compound key: {artist}, {title}, {year}")
+    #         app.logger.info(f"Received request to retrieve goal by compound key: {artist}, {title}, {year}")
 
-            song = Songs.get_song_by_compound_key(artist, title, year)
-            if not song:
-                app.logger.warning(f"Song not found: {artist} - {title} ({year})")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Song not found: {artist} - {title} ({year})"
-                }), 400)
+    #         goal = goals.get_goal_by_compound_key(artist, title, year)
+    #         if not goal:
+    #             app.logger.warning(f"goal not found: {artist} - {title} ({year})")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": f"goal not found: {artist} - {title} ({year})"
+    #             }), 400)
 
-            app.logger.info(f"Successfully retrieved song: {song.title} by {song.artist} ({year})")
+    #         app.logger.info(f"Successfully retrieved goal: {goal.title} by {goal.artist} ({year})")
 
-            return make_response(jsonify({
-                "status": "success",
-                "message": "Song retrieved successfully",
-                "song": song
-            }), 200)
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": "goal retrieved successfully",
+    #             "goal": goal
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to retrieve song by compound key: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while retrieving the song",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to retrieve goal by compound key: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while retrieving the goal",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/get-random-song', methods=['GET'])
-    @login_required
-    def get_random_song() -> Response:
-        """Route to retrieve a random song from the catalog.
+    # @app.route('/api/get-random-goal', methods=['GET']) TODO do we need this?
+    # @login_required
+    # def get_random_goal() -> Response:
+    #     """Route to retrieve a random goal from the catalog.
 
-        Returns:
-            JSON response containing the details of a random song.
+    #     Returns:
+    #         JSON response containing the details of a random goal.
 
-        Raises:
-            400 error if no songs exist in the catalog.
-            500 error if there is an issue retrieving the song
+    #     Raises:
+    #         400 error if no goals exist in the catalog.
+    #         500 error if there is an issue retrieving the goal
 
-        """
-        try:
-            app.logger.info("Received request to retrieve a random song from the catalog")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to retrieve a random goal from the catalog")
 
-            song = Songs.get_random_song()
-            if not song:
-                app.logger.warning("No songs found in the catalog.")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "No songs available in the catalog"
-                }), 400)
+    #         goal = goals.get_random_goal()
+    #         if not goal:
+    #             app.logger.warning("No goals found in the catalog.")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "No goals available in the catalog"
+    #             }), 400)
 
-            app.logger.info(f"Successfully retrieved random song: {song.title} by {song.artist}")
+    #         app.logger.info(f"Successfully retrieved random goal: {goal.title} by {goal.artist}")
 
-            return make_response(jsonify({
-                "status": "success",
-                "message": "Random song retrieved successfully",
-                "song": song
-            }), 200)
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": "Random goal retrieved successfully",
+    #             "goal": goal
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to retrieve random song: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while retrieving a random song",
-                "details": str(e)
-            }), 500)
+        # except Exception as e:
+        #     app.logger.error(f"Failed to retrieve random goal: {e}")
+        #     return make_response(jsonify({
+        #         "status": "error",
+        #         "message": "An internal error occurred while retrieving a random goal",
+        #         "details": str(e)
+        #     }), 500)
 
 
     ############################################################
     #
-    # Playlist Add / Remove
+    # Plan Add / Remove
     #
     ############################################################
 
 
-    @app.route('/api/add-song-to-playlist', methods=['POST'])
+    @app.route('/api/add-goal-to-plan', methods=['POST']) # TODO take a look at this because this uses the compound key
     @login_required
-    def add_song_to_playlist() -> Response:
-        """Route to add a song to the playlist by compound key (artist, title, year).
+    def add_goal_to_plan() -> Response:
+        """Route to add a goal to the plan by compound key (artist, title, year).
 
         Expected JSON Input:
             - artist (str): The artist's name.
-            - title (str): The song title.
-            - year (int): The year the song was released.
+            - title (str): The goal title.
+            - year (int): The year the goal was released.
 
         Returns:
             JSON response indicating success of the addition.
 
         Raises:
-            400 error if required fields are missing or the song does not exist.
-            500 error if there is an issue adding the song to the playlist.
+            400 error if required fields are missing or the goal does not exist.
+            500 error if there is an issue adding the goal to the plan.
 
         """
         try:
-            app.logger.info("Received request to add song to playlist")
+            app.logger.info("Received request to add goal to plan")
 
             data = request.get_json()
             required_fields = ["artist", "title", "year"]
@@ -652,53 +652,53 @@ def create_app(config_class=ProductionConfig) -> Flask:
                     "message": "Year must be a valid integer"
                 }), 400)
 
-            app.logger.info(f"Looking up song: {artist} - {title} ({year})")
-            song = Songs.get_song_by_compound_key(artist, title, year)
+            app.logger.info(f"Looking up goal: {artist} - {title} ({year})")
+            goal = Goals.get_goal_by_compound_key(artist, title, year)
 
-            if not song:
-                app.logger.warning(f"Song not found: {artist} - {title} ({year})")
+            if not goal:
+                app.logger.warning(f"Goal not found: {artist} - {title} ({year})")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": f"Song '{title}' by {artist} ({year}) not found in catalog"
+                    "message": f"goal '{title}' by {artist} ({year}) not found in catalog"
                 }), 400)
 
-            playlist_model.add_song_to_playlist(song)
-            app.logger.info(f"Successfully added song to playlist: {artist} - {title} ({year})")
+            plan_model.add_goal_to_plan(goal)
+            app.logger.info(f"Successfully added goal to plan: {artist} - {title} ({year})")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": f"Song '{title}' by {artist} ({year}) added to playlist"
+                "message": f"goal '{title}' by {artist} ({year}) added to plan"
             }), 201)
 
         except Exception as e:
-            app.logger.error(f"Failed to add song to playlist: {e}")
+            app.logger.error(f"Failed to add goal to plan: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while adding the song to the playlist",
+                "message": "An internal error occurred while adding the goal to the plan",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/remove-song-from-playlist', methods=['DELETE'])
+    @app.route('/api/remove-goal-from-plan', methods=['DELETE']) # TODO compound key again
     @login_required
-    def remove_song_by_song_id() -> Response:
-        """Route to remove a song from the playlist by compound key (artist, title, year).
+    def remove_goal_by_goal_id() -> Response:
+        """Route to remove a goal from the plan by compound key (artist, title, year).
 
         Expected JSON Input:
             - artist (str): The artist's name.
-            - title (str): The song title.
-            - year (int): The year the song was released.
+            - title (str): The goal title.
+            - year (int): The year the goal was released.
 
         Returns:
             JSON response indicating success of the removal.
 
         Raises:
-            400 error if required fields are missing or the song does not exist in the playlist.
-            500 error if there is an issue removing the song.
+            400 error if required fields are missing or the goal does not exist in the plan.
+            500 error if there is an issue removing the goal.
 
         """
         try:
-            app.logger.info("Received request to remove song from playlist")
+            app.logger.info("Received request to remove goal from plan")
 
             data = request.get_json()
             required_fields = ["artist", "title", "year"]
@@ -723,740 +723,740 @@ def create_app(config_class=ProductionConfig) -> Flask:
                     "message": "Year must be a valid integer"
                 }), 400)
 
-            app.logger.info(f"Looking up song to remove: {artist} - {title} ({year})")
-            song = Songs.get_song_by_compound_key(artist, title, year)
+            app.logger.info(f"Looking up goal to remove: {artist} - {title} ({year})")
+            goal = Goals.get_goal_by_compound_key(artist, title, year)
 
-            if not song:
-                app.logger.warning(f"Song not found in catalog: {artist} - {title} ({year})")
+            if not goal:
+                app.logger.warning(f"goal not found in catalog: {artist} - {title} ({year})")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": f"Song '{title}' by {artist} ({year}) not found in catalog"
+                    "message": f"goal '{title}' by {artist} ({year}) not found in catalog"
                 }), 400)
 
-            playlist_model.remove_song_by_song_id(song.id)
-            app.logger.info(f"Successfully removed song from playlist: {artist} - {title} ({year})")
+            plan_model.remove_goal_by_goal_id(goal.id)
+            app.logger.info(f"Successfully removed goal from plan: {artist} - {title} ({year})")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": f"Song '{title}' by {artist} ({year}) removed from playlist"
+                "message": f"goal '{title}' by {artist} ({year}) removed from plan"
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Failed to remove song from playlist: {e}")
+            app.logger.error(f"Failed to remove goal from plan: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while removing the song from the playlist",
+                "message": "An internal error occurred while removing the goal from the plan",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/remove-song-from-playlist-by-track-number/<int:track_number>', methods=['DELETE'])
+    # @app.route('/api/remove-goal-from-plan-by-track-number/<int:track_number>', methods=['DELETE'])
+    # @login_required
+    # def remove_goal_by_track_number(track_number: int) -> Response:
+    #     """Route to remove a goal from the plan by track number.
+
+    #     Path Parameter:
+    #         - track_number (int): The track number of the goal to remove.
+
+    #     Returns:
+    #         JSON response indicating success of the removal.
+
+    #     Raises:
+    #         404 error if the track number does not exist.
+    #         500 error if there is an issue removing the goal.
+
+    #     """
+    #     try:
+    #         app.logger.info(f"Received request to remove goal at track number {track_number} from plan")
+
+    #         plan_model.remove_goal_by_track_number(track_number)
+
+    #         app.logger.info(f"Successfully removed goal at track number {track_number} from plan")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"goal at track number {track_number} removed from plan"
+    #         }), 200)
+
+    #     except ValueError as e:
+    #         app.logger.warning(f"Track number {track_number} not found in plan: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": f"Track number {track_number} not found in plan"
+    #         }), 404)
+
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to remove goal at track number {track_number}: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while removing the goal from the plan",
+    #             "details": str(e)
+    #         }), 500)
+
+
+    @app.route('/api/clear-plan', methods=['POST'])
     @login_required
-    def remove_song_by_track_number(track_number: int) -> Response:
-        """Route to remove a song from the playlist by track number.
-
-        Path Parameter:
-            - track_number (int): The track number of the song to remove.
-
-        Returns:
-            JSON response indicating success of the removal.
-
-        Raises:
-            404 error if the track number does not exist.
-            500 error if there is an issue removing the song.
-
-        """
-        try:
-            app.logger.info(f"Received request to remove song at track number {track_number} from playlist")
-
-            playlist_model.remove_song_by_track_number(track_number)
-
-            app.logger.info(f"Successfully removed song at track number {track_number} from playlist")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Song at track number {track_number} removed from playlist"
-            }), 200)
-
-        except ValueError as e:
-            app.logger.warning(f"Track number {track_number} not found in playlist: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": f"Track number {track_number} not found in playlist"
-            }), 404)
-
-        except Exception as e:
-            app.logger.error(f"Failed to remove song at track number {track_number}: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while removing the song from the playlist",
-                "details": str(e)
-            }), 500)
-
-
-    @app.route('/api/clear-playlist', methods=['POST'])
-    @login_required
-    def clear_playlist() -> Response:
-        """Route to clear all songs from the playlist.
+    def clear_plan() -> Response:
+        """Route to clear all goals from the plan.
 
         Returns:
             JSON response indicating success of the operation.
 
         Raises:
-            500 error if there is an issue clearing the playlist.
+            500 error if there is an issue clearing the plan.
 
         """
         try:
-            app.logger.info("Received request to clear the playlist")
+            app.logger.info("Received request to clear the plan")
 
-            playlist_model.clear_playlist()
+            plan_model.clear_plan()
 
-            app.logger.info("Successfully cleared the playlist")
+            app.logger.info("Successfully cleared the plan")
             return make_response(jsonify({
                 "status": "success",
-                "message": "Playlist cleared"
+                "message": "plan cleared"
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Failed to clear playlist: {e}")
+            app.logger.error(f"Failed to clear plan: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while clearing the playlist",
+                "message": "An internal error occurred while clearing the plan",
                 "details": str(e)
             }), 500)
 
 
     ############################################################
     #
-    # Play Playlist
+    # Play plan
     #
     ############################################################
 
 
-    @app.route('/api/play-current-song', methods=['POST'])
-    @login_required
-    def play_current_song() -> Response:
-        """Route to play the current song in the playlist.
+    # @app.route('/api/play-current-goal', methods=['POST'])
+    # @login_required
+    # def play_current_goal() -> Response:
+    #     """Route to play the current goal in the plan.
 
-        Returns:
-            JSON response indicating success of the operation.
+    #     Returns:
+    #         JSON response indicating success of the operation.
 
-        Raises:
-            404 error if there is no current song.
-            500 error if there is an issue playing the current song.
+    #     Raises:
+    #         404 error if there is no current goal.
+    #         500 error if there is an issue playing the current goal.
 
-        """
-        try:
-            app.logger.info("Received request to play the current song")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to play the current goal")
 
-            current_song = playlist_model.get_current_song()
-            if not current_song:
-                app.logger.warning("No current song found in the playlist")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "No current song found in the playlist"
-                }), 404)
+    #         current_goal = plan_model.get_current_goal()
+    #         if not current_goal:
+    #             app.logger.warning("No current goal found in the plan")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "No current goal found in the plan"
+    #             }), 404)
 
-            playlist_model.play_current_song()
-            app.logger.info(f"Now playing: {current_song.artist} - {current_song.title} ({current_song.year})")
+    #         plan_model.play_current_goal()
+    #         app.logger.info(f"Now playing: {current_goal.artist} - {current_goal.title} ({current_goal.year})")
 
-            return make_response(jsonify({
-                "status": "success",
-                "message": "Now playing current song",
-                "song": {
-                    "id": current_song.id,
-                    "artist": current_song.artist,
-                    "title": current_song.title,
-                    "year": current_song.year,
-                    "genre": current_song.genre,
-                    "duration": current_song.duration
-                }
-            }), 200)
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": "Now playing current goal",
+    #             "goal": {
+    #                 "id": current_goal.id,
+    #                 "artist": current_goal.artist,
+    #                 "title": current_goal.title,
+    #                 "year": current_goal.year,
+    #                 "genre": current_goal.genre,
+    #                 "duration": current_goal.duration
+    #             }
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to play current song: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while playing the current song",
-                "details": str(e)
-            }), 500)
-
-
-    @app.route('/api/play-entire-playlist', methods=['POST'])
-    @login_required
-    def play_entire_playlist() -> Response:
-        """Route to play all songs in the playlist.
-
-        Returns:
-            JSON response indicating success of the operation.
-
-        Raises:
-            400 error if the playlist is empty.
-            500 error if there is an issue playing the playlist.
-
-        """
-        try:
-            app.logger.info("Received request to play the entire playlist")
-
-            if playlist_model.check_if_empty():
-                app.logger.warning("Cannot play playlist: No songs available")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Cannot play playlist: No songs available"
-                }), 400)
-
-            playlist_model.play_entire_playlist()
-            app.logger.info("Playing entire playlist")
-
-            return make_response(jsonify({
-                "status": "success",
-                "message": "Playing entire playlist"
-            }), 200)
-
-        except Exception as e:
-            app.logger.error(f"Failed to play entire playlist: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while playing the playlist",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to play current goal: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while playing the current goal",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/play-rest-of-playlist', methods=['POST'])
-    @login_required
-    def play_rest_of_playlist() -> Response:
-        """Route to play the rest of the playlist from the current track.
+    # @app.route('/api/play-entire-plan', methods=['POST'])
+    # @login_required
+    # def play_entire_plan() -> Response:
+    #     """Route to play all goals in the plan.
 
-        Returns:
-            JSON response indicating success of the operation.
+    #     Returns:
+    #         JSON response indicating success of the operation.
 
-        Raises:
-            400 error if the playlist is empty or if no current song is playing.
-            500 error if there is an issue playing the rest of the playlist.
+    #     Raises:
+    #         400 error if the plan is empty.
+    #         500 error if there is an issue playing the plan.
 
-        """
-        try:
-            app.logger.info("Received request to play the rest of the playlist")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to play the entire plan")
 
-            if playlist_model.check_if_empty():
-                app.logger.warning("Cannot play rest of playlist: No songs available")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Cannot play rest of playlist: No songs available"
-                }), 400)
+    #         if plan_model.check_if_empty():
+    #             app.logger.warning("Cannot play plan: No goals available")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "Cannot play plan: No goals available"
+    #             }), 400)
 
-            if not playlist_model.get_current_song():
-                app.logger.warning("No current song playing. Cannot continue playlist.")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "No current song playing. Cannot continue playlist."
-                }), 400)
+    #         plan_model.play_entire_plan()
+    #         app.logger.info("Playing entire plan")
 
-            playlist_model.play_rest_of_playlist()
-            app.logger.info("Playing rest of the playlist")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": "Playing entire plan"
+    #         }), 200)
 
-            return make_response(jsonify({
-                "status": "success",
-                "message": "Playing rest of the playlist"
-            }), 200)
-
-        except Exception as e:
-            app.logger.error(f"Failed to play rest of the playlist: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while playing the rest of the playlist",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to play entire plan: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while playing the plan",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/rewind-playlist', methods=['POST'])
-    @login_required
-    def rewind_playlist() -> Response:
-        """Route to rewind the playlist to the first song.
+    # @app.route('/api/play-rest-of-plan', methods=['POST'])
+    # @login_required
+    # def play_rest_of_plan() -> Response:
+    #     """Route to play the rest of the plan from the current track.
 
-        Returns:
-            JSON response indicating success of the operation.
+    #     Returns:
+    #         JSON response indicating success of the operation.
 
-        Raises:
-            400 error if the playlist is empty.
-            500 error if there is an issue rewinding the playlist.
+    #     Raises:
+    #         400 error if the plan is empty or if no current goal is playing.
+    #         500 error if there is an issue playing the rest of the plan.
 
-        """
-        try:
-            app.logger.info("Received request to rewind the playlist")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to play the rest of the plan")
 
-            if playlist_model.check_if_empty():
-                app.logger.warning("Cannot rewind: No songs in playlist")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Cannot rewind: No songs in playlist"
-                }), 400)
+    #         if plan_model.check_if_empty():
+    #             app.logger.warning("Cannot play rest of plan: No goals available")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "Cannot play rest of plan: No goals available"
+    #             }), 400)
 
-            playlist_model.rewind_playlist()
-            app.logger.info("Playlist successfully rewound to the first song")
+    #         if not plan_model.get_current_goal():
+    #             app.logger.warning("No current goal playing. Cannot continue plan.")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "No current goal playing. Cannot continue plan."
+    #             }), 400)
 
-            return make_response(jsonify({
-                "status": "success",
-                "message": "Playlist rewound to the first song"
-            }), 200)
+    #         plan_model.play_rest_of_plan()
+    #         app.logger.info("Playing rest of the plan")
 
-        except Exception as e:
-            app.logger.error(f"Failed to rewind playlist: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while rewinding the playlist",
-                "details": str(e)
-            }), 500)
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": "Playing rest of the plan"
+    #         }), 200)
 
-
-    @app.route('/api/go-to-track-number/<int:track_number>', methods=['POST'])
-    @login_required
-    def go_to_track_number(track_number: int) -> Response:
-        """Route to set the playlist to start playing from a specific track number.
-
-        Path Parameter:
-            - track_number (int): The track number to set as the current song.
-
-        Returns:
-            JSON response indicating success or an error message.
-
-        Raises:
-            400 error if the track number is invalid.
-            500 error if there is an issue updating the track number.
-        """
-        try:
-            app.logger.info(f"Received request to go to track number {track_number}")
-
-            if not playlist_model.is_valid_track_number(track_number):
-                app.logger.warning(f"Invalid track number: {track_number}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Invalid track number: {track_number}. Please provide a valid track number."
-                }), 400)
-
-            playlist_model.go_to_track_number(track_number)
-            app.logger.info(f"Playlist set to track number {track_number}")
-
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Now playing from track number {track_number}"
-            }), 200)
-
-        except ValueError as e:
-            app.logger.warning(f"Failed to set track number {track_number}: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": str(e)
-            }), 400)
-
-        except Exception as e:
-            app.logger.error(f"Internal error while going to track number {track_number}: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while changing the track number",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to play rest of the plan: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while playing the rest of the plan",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/go-to-random-track', methods=['POST'])
-    @login_required
-    def go_to_random_track() -> Response:
-        """Route to set the playlist to start playing from a random track number.
+    # @app.route('/api/rewind-plan', methods=['POST'])
+    # @login_required
+    # def rewind_plan() -> Response:
+    #     """Route to rewind the plan to the first goal.
 
-        Returns:
-            JSON response indicating success or an error message.
+    #     Returns:
+    #         JSON response indicating success of the operation.
 
-        Raises:
-            400 error if the playlist is empty.
-            500 error if there is an issue selecting a random track.
+    #     Raises:
+    #         400 error if the plan is empty.
+    #         500 error if there is an issue rewinding the plan.
 
-        """
-        try:
-            app.logger.info("Received request to go to a random track")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to rewind the plan")
 
-            if playlist_model.get_playlist_length() == 0:
-                app.logger.warning("Attempted to go to a random track but the playlist is empty")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Cannot select a random track. The playlist is empty."
-                }), 400)
+    #         if plan_model.check_if_empty():
+    #             app.logger.warning("Cannot rewind: No goals in plan")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "Cannot rewind: No goals in plan"
+    #             }), 400)
 
-            playlist_model.go_to_random_track()
-            app.logger.info(f"Playlist set to random track number {playlist_model.current_track_number}")
+    #         plan_model.rewind_plan()
+    #         app.logger.info("plan successfully rewound to the first goal")
 
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Now playing from random track number {playlist_model.current_track_number}"
-            }), 200)
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": "plan rewound to the first goal"
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Internal error while selecting a random track: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while selecting a random track",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to rewind plan: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while rewinding the plan",
+    #             "details": str(e)
+    #         }), 500)
+
+
+    # @app.route('/api/go-to-track-number/<int:track_number>', methods=['POST'])
+    # @login_required
+    # def go_to_track_number(track_number: int) -> Response:
+    #     """Route to set the plan to start playing from a specific track number.
+
+    #     Path Parameter:
+    #         - track_number (int): The track number to set as the current goal.
+
+    #     Returns:
+    #         JSON response indicating success or an error message.
+
+    #     Raises:
+    #         400 error if the track number is invalid.
+    #         500 error if there is an issue updating the track number.
+    #     """
+    #     try:
+    #         app.logger.info(f"Received request to go to track number {track_number}")
+
+    #         if not plan_model.is_valid_track_number(track_number):
+    #             app.logger.warning(f"Invalid track number: {track_number}")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": f"Invalid track number: {track_number}. Please provide a valid track number."
+    #             }), 400)
+
+    #         plan_model.go_to_track_number(track_number)
+    #         app.logger.info(f"plan set to track number {track_number}")
+
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"Now playing from track number {track_number}"
+    #         }), 200)
+
+    #     except ValueError as e:
+    #         app.logger.warning(f"Failed to set track number {track_number}: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": str(e)
+    #         }), 400)
+
+    #     except Exception as e:
+    #         app.logger.error(f"Internal error while going to track number {track_number}: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while changing the track number",
+    #             "details": str(e)
+    #         }), 500)
+
+
+    # @app.route('/api/go-to-random-track', methods=['POST'])
+    # @login_required
+    # def go_to_random_track() -> Response:
+    #     """Route to set the plan to start playing from a random track number.
+
+    #     Returns:
+    #         JSON response indicating success or an error message.
+
+    #     Raises:
+    #         400 error if the plan is empty.
+    #         500 error if there is an issue selecting a random track.
+
+    #     """
+    #     try:
+    #         app.logger.info("Received request to go to a random track")
+
+    #         if plan_model.get_plan_length() == 0:
+    #             app.logger.warning("Attempted to go to a random track but the plan is empty")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": "Cannot select a random track. The plan is empty."
+    #             }), 400)
+
+    #         plan_model.go_to_random_track()
+    #         app.logger.info(f"plan set to random track number {plan_model.current_track_number}")
+
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"Now playing from random track number {plan_model.current_track_number}"
+    #         }), 200)
+
+    #     except Exception as e:
+    #         app.logger.error(f"Internal error while selecting a random track: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while selecting a random track",
+    #             "details": str(e)
+    #         }), 500)
 
 
     ############################################################
     #
-    # View Playlist
+    # View plan
     #
     ############################################################
 
 
-    @app.route('/api/get-all-songs-from-playlist', methods=['GET'])
+    @app.route('/api/get-all-goals-from-plan', methods=['GET'])
     @login_required
-    def get_all_songs_from_playlist() -> Response:
-        """Retrieve all songs in the playlist.
+    def get_all_goals_from_plan() -> Response:
+        """Retrieve all goals in the plan.
 
         Returns:
-            JSON response containing the list of songs.
+            JSON response containing the list of goals.
 
         Raises:
-            500 error if there is an issue retrieving the playlist.
+            500 error if there is an issue retrieving the plan.
 
         """
         try:
-            app.logger.info("Received request to retrieve all songs from the playlist.")
+            app.logger.info("Received request to retrieve all goals from the plan.")
 
-            songs = playlist_model.get_all_songs()
+            goals = plan_model.get_all_goals()
 
-            app.logger.info(f"Successfully retrieved {len(songs)} songs from the playlist.")
+            app.logger.info(f"Successfully retrieved {len(goals)} goals from the plan.")
             return make_response(jsonify({
                 "status": "success",
-                "songs": songs
+                "goals": goals
             }), 200)
 
         except Exception as e:
-            app.logger.error(f"Failed to retrieve songs from playlist: {e}")
+            app.logger.error(f"Failed to retrieve goals from plan: {e}")
             return make_response(jsonify({
                 "status": "error",
-                "message": "An internal error occurred while retrieving the playlist",
+                "message": "An internal error occurred while retrieving the plan",
                 "details": str(e)
             }), 500)
 
 
-    @app.route('/api/get-song-from-playlist-by-track-number/<int:track_number>', methods=['GET'])
-    @login_required
-    def get_song_by_track_number(track_number: int) -> Response:
-        """Retrieve a song from the playlist by track number.
+    # @app.route('/api/get-goal-from-plan-by-track-number/<int:track_number>', methods=['GET'])
+    # @login_required
+    # def get_goal_by_track_number(track_number: int) -> Response:
+    #     """Retrieve a goal from the plan by track number.
 
-        Path Parameter:
-            - track_number (int): The track number of the song.
+    #     Path Parameter:
+    #         - track_number (int): The track number of the goal.
 
-        Returns:
-            JSON response containing song details.
+    #     Returns:
+    #         JSON response containing goal details.
 
-        Raises:
-            404 error if the track number is not found.
-            500 error if there is an issue retrieving the song.
+    #     Raises:
+    #         404 error if the track number is not found.
+    #         500 error if there is an issue retrieving the goal.
 
-        """
-        try:
-            app.logger.info(f"Received request to retrieve song at track number {track_number}.")
+    #     """
+    #     try:
+    #         app.logger.info(f"Received request to retrieve goal at track number {track_number}.")
 
-            song = playlist_model.get_song_by_track_number(track_number)
+    #         goal = plan_model.get_goal_by_track_number(track_number)
 
-            app.logger.info(f"Successfully retrieved song: {song.artist} - {song.title} (Track {track_number}).")
-            return make_response(jsonify({
-                "status": "success",
-                "song": song
-            }), 200)
+    #         app.logger.info(f"Successfully retrieved goal: {goal.artist} - {goal.title} (Track {track_number}).")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "goal": goal
+    #         }), 200)
 
-        except ValueError as e:
-            app.logger.warning(f"Track number {track_number} not found: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": str(e)
-            }), 404)
+    #     except ValueError as e:
+    #         app.logger.warning(f"Track number {track_number} not found: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": str(e)
+    #         }), 404)
 
-        except Exception as e:
-            app.logger.error(f"Failed to retrieve song by track number {track_number}: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while retrieving the song",
-                "details": str(e)
-            }), 500)
-
-
-    @app.route('/api/get-current-song', methods=['GET'])
-    @login_required
-    def get_current_song() -> Response:
-        """Retrieve the current song being played.
-
-        Returns:
-            JSON response containing current song details.
-
-        Raises:
-            500 error if there is an issue retrieving the current song.
-
-        """
-        try:
-            app.logger.info("Received request to retrieve the current song.")
-
-            current_song = playlist_model.get_current_song()
-
-            app.logger.info(f"Successfully retrieved current song: {current_song.artist} - {current_song.title}.")
-            return make_response(jsonify({
-                "status": "success",
-                "current_song": current_song
-            }), 200)
-
-        except Exception as e:
-            app.logger.error(f"Failed to retrieve current song: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while retrieving the current song",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to retrieve goal by track number {track_number}: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while retrieving the goal",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/get-playlist-length-duration', methods=['GET'])
-    @login_required
-    def get_playlist_length_and_duration() -> Response:
-        """Retrieve the length (number of songs) and total duration of the playlist.
+    # @app.route('/api/get-current-goal', methods=['GET'])
+    # @login_required
+    # def get_current_goal() -> Response:
+    #     """Retrieve the current goal being played.
 
-        Returns:
-            JSON response containing the playlist length and total duration.
+    #     Returns:
+    #         JSON response containing current goal details.
 
-        Raises:
-            500 error if there is an issue retrieving playlist information.
+    #     Raises:
+    #         500 error if there is an issue retrieving the current goal.
 
-        """
-        try:
-            app.logger.info("Received request to retrieve playlist length and duration.")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to retrieve the current goal.")
 
-            playlist_length = playlist_model.get_playlist_length()
-            playlist_duration = playlist_model.get_playlist_duration()
+    #         current_goal = plan_model.get_current_goal()
 
-            app.logger.info(f"Playlist contains {playlist_length} songs with a total duration of {playlist_duration} seconds.")
-            return make_response(jsonify({
-                "status": "success",
-                "playlist_length": playlist_length,
-                "playlist_duration": playlist_duration
-            }), 200)
+    #         app.logger.info(f"Successfully retrieved current goal: {current_goal.artist} - {current_goal.title}.")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "current_goal": current_goal
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to retrieve playlist length and duration: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while retrieving playlist details",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to retrieve current goal: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while retrieving the current goal",
+    #             "details": str(e)
+    #         }), 500)
+
+
+    # @app.route('/api/get-plan-length-duration', methods=['GET'])
+    # @login_required
+    # def get_plan_length_and_duration() -> Response:
+    #     """Retrieve the length (number of goals) and total duration of the plan.
+
+    #     Returns:
+    #         JSON response containing the plan length and total duration.
+
+    #     Raises:
+    #         500 error if there is an issue retrieving plan information.
+
+    #     """
+    #     try:
+    #         app.logger.info("Received request to retrieve plan length and duration.")
+
+    #         plan_length = plan_model.get_plan_length()
+    #         plan_duration = plan_model.get_plan_duration()
+
+    #         app.logger.info(f"plan contains {plan_length} goals with a total duration of {plan_duration} seconds.")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "plan_length": plan_length,
+    #             "plan_duration": plan_duration
+    #         }), 200)
+
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to retrieve plan length and duration: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while retrieving plan details",
+    #             "details": str(e)
+    #         }), 500)
 
 
     ############################################################
     #
-    # Arrange Playlist
+    # Arrange plan
     #
     ############################################################
 
 
-    @app.route('/api/move-song-to-beginning', methods=['POST'])
-    @login_required
-    def move_song_to_beginning() -> Response:
-        """Move a song to the beginning of the playlist.
+    # @app.route('/api/move-goal-to-beginning', methods=['POST'])
+    # @login_required
+    # def move_goal_to_beginning() -> Response:
+    #     """Move a goal to the beginning of the plan.
 
-        Expected JSON Input:
-            - artist (str): The artist of the song.
-            - title (str): The title of the song.
-            - year (int): The year the song was released.
+    #     Expected JSON Input:
+    #         - artist (str): The artist of the goal.
+    #         - title (str): The title of the goal.
+    #         - year (int): The year the goal was released.
 
-        Returns:
-            Response: JSON response indicating success or an error message.
+    #     Returns:
+    #         Response: JSON response indicating success or an error message.
 
-        Raises:
-            400 error if required fields are missing.
-            500 error if an error occurs while updating the playlist.
+    #     Raises:
+    #         400 error if required fields are missing.
+    #         500 error if an error occurs while updating the plan.
 
-        """
-        try:
-            data = request.get_json()
+    #     """
+    #     try:
+    #         data = request.get_json()
 
-            required_fields = ["artist", "title", "year"]
-            missing_fields = [field for field in required_fields if field not in data]
+    #         required_fields = ["artist", "title", "year"]
+    #         missing_fields = [field for field in required_fields if field not in data]
 
-            if missing_fields:
-                app.logger.warning(f"Missing required fields: {missing_fields}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Missing required fields: {', '.join(missing_fields)}"
-                }), 400)
+    #         if missing_fields:
+    #             app.logger.warning(f"Missing required fields: {missing_fields}")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": f"Missing required fields: {', '.join(missing_fields)}"
+    #             }), 400)
 
-            artist, title, year = data["artist"], data["title"], data["year"]
-            app.logger.info(f"Received request to move song to beginning: {artist} - {title} ({year})")
+    #         artist, title, year = data["artist"], data["title"], data["year"]
+    #         app.logger.info(f"Received request to move goal to beginning: {artist} - {title} ({year})")
 
-            song = Songs.get_song_by_compound_key(artist, title, year)
-            playlist_model.move_song_to_beginning(song.id)
+    #         goal = goals.get_goal_by_compound_key(artist, title, year)
+    #         plan_model.move_goal_to_beginning(goal.id)
 
-            app.logger.info(f"Successfully moved song to beginning: {artist} - {title} ({year})")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Song '{title}' by {artist} moved to beginning"
-            }), 200)
+    #         app.logger.info(f"Successfully moved goal to beginning: {artist} - {title} ({year})")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"goal '{title}' by {artist} moved to beginning"
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to move song to beginning: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while moving the song",
-                "details": str(e)
-            }), 500)
-
-
-    @app.route('/api/move-song-to-end', methods=['POST'])
-    @login_required
-    def move_song_to_end() -> Response:
-        """Move a song to the end of the playlist.
-
-        Expected JSON Input:
-            - artist (str): The artist of the song.
-            - title (str): The title of the song.
-            - year (int): The year the song was released.
-
-        Returns:
-            Response: JSON response indicating success or an error message.
-
-        Raises:
-            400 error if required fields are missing.
-            500 if an error occurs while updating the playlist.
-
-        """
-        try:
-            data = request.get_json()
-
-            required_fields = ["artist", "title", "year"]
-            missing_fields = [field for field in required_fields if field not in data]
-
-            if missing_fields:
-                app.logger.warning(f"Missing required fields: {missing_fields}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Missing required fields: {', '.join(missing_fields)}"
-                }), 400)
-
-            artist, title, year = data["artist"], data["title"], data["year"]
-            app.logger.info(f"Received request to move song to end: {artist} - {title} ({year})")
-
-            song = Songs.get_song_by_compound_key(artist, title, year)
-            playlist_model.move_song_to_end(song.id)
-
-            app.logger.info(f"Successfully moved song to end: {artist} - {title} ({year})")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Song '{title}' by {artist} moved to end"
-            }), 200)
-
-        except Exception as e:
-            app.logger.error(f"Failed to move song to end: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while moving the song",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to move goal to beginning: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while moving the goal",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/move-song-to-track-number', methods=['POST'])
-    @login_required
-    def move_song_to_track_number() -> Response:
-        """Move a song to a specific track number in the playlist.
+    # @app.route('/api/move-goal-to-end', methods=['POST'])
+    # @login_required
+    # def move_goal_to_end() -> Response:
+    #     """Move a goal to the end of the plan.
 
-        Expected JSON Input:
-            - artist (str): The artist of the song.
-            - title (str): The title of the song.
-            - year (int): The year the song was released.
-            - track_number (int): The new track number to move the song to.
+    #     Expected JSON Input:
+    #         - artist (str): The artist of the goal.
+    #         - title (str): The title of the goal.
+    #         - year (int): The year the goal was released.
 
-        Returns:
-            Response: JSON response indicating success or an error message.
+    #     Returns:
+    #         Response: JSON response indicating success or an error message.
 
-        Raises:
-            400 error if required fields are missing.
-            500 error if an error occurs while updating the playlist.
-        """
-        try:
-            data = request.get_json()
+    #     Raises:
+    #         400 error if required fields are missing.
+    #         500 if an error occurs while updating the plan.
 
-            required_fields = ["artist", "title", "year", "track_number"]
-            missing_fields = [field for field in required_fields if field not in data]
+    #     """
+    #     try:
+    #         data = request.get_json()
 
-            if missing_fields:
-                app.logger.warning(f"Missing required fields: {missing_fields}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Missing required fields: {', '.join(missing_fields)}"
-                }), 400)
+    #         required_fields = ["artist", "title", "year"]
+    #         missing_fields = [field for field in required_fields if field not in data]
 
-            artist, title, year, track_number = data["artist"], data["title"], data["year"], data["track_number"]
-            app.logger.info(f"Received request to move song to track number {track_number}: {artist} - {title} ({year})")
+    #         if missing_fields:
+    #             app.logger.warning(f"Missing required fields: {missing_fields}")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": f"Missing required fields: {', '.join(missing_fields)}"
+    #             }), 400)
 
-            song = Songs.get_song_by_compound_key(artist, title, year)
-            playlist_model.move_song_to_track_number(song.id, track_number)
+    #         artist, title, year = data["artist"], data["title"], data["year"]
+    #         app.logger.info(f"Received request to move goal to end: {artist} - {title} ({year})")
 
-            app.logger.info(f"Successfully moved song to track {track_number}: {artist} - {title} ({year})")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Song '{title}' by {artist} moved to track {track_number}"
-            }), 200)
+    #         goal = goals.get_goal_by_compound_key(artist, title, year)
+    #         plan_model.move_goal_to_end(goal.id)
 
-        except Exception as e:
-            app.logger.error(f"Failed to move song to track number: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while moving the song",
-                "details": str(e)
-            }), 500)
+    #         app.logger.info(f"Successfully moved goal to end: {artist} - {title} ({year})")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"goal '{title}' by {artist} moved to end"
+    #         }), 200)
+
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to move goal to end: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while moving the goal",
+    #             "details": str(e)
+    #         }), 500)
 
 
-    @app.route('/api/swap-songs-in-playlist', methods=['POST'])
-    @login_required
-    def swap_songs_in_playlist() -> Response:
-        """Swap two songs in the playlist by their track numbers.
+    # @app.route('/api/move-goal-to-track-number', methods=['POST'])
+    # @login_required
+    # def move_goal_to_track_number() -> Response:
+    #     """Move a goal to a specific track number in the plan.
 
-        Expected JSON Input:
-            - track_number_1 (int): The track number of the first song.
-            - track_number_2 (int): The track number of the second song.
+    #     Expected JSON Input:
+    #         - artist (str): The artist of the goal.
+    #         - title (str): The title of the goal.
+    #         - year (int): The year the goal was released.
+    #         - track_number (int): The new track number to move the goal to.
 
-        Returns:
-            Response: JSON response indicating success or an error message.
+    #     Returns:
+    #         Response: JSON response indicating success or an error message.
 
-        Raises:
-            400 error if required fields are missing.
-            500 error if an error occurs while swapping songs in the playlist.
-        """
-        try:
-            data = request.get_json()
+    #     Raises:
+    #         400 error if required fields are missing.
+    #         500 error if an error occurs while updating the plan.
+    #     """
+    #     try:
+    #         data = request.get_json()
 
-            required_fields = ["track_number_1", "track_number_2"]
-            missing_fields = [field for field in required_fields if field not in data]
+    #         required_fields = ["artist", "title", "year", "track_number"]
+    #         missing_fields = [field for field in required_fields if field not in data]
 
-            if missing_fields:
-                app.logger.warning(f"Missing required fields: {missing_fields}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Missing required fields: {', '.join(missing_fields)}"
-                }), 400)
+    #         if missing_fields:
+    #             app.logger.warning(f"Missing required fields: {missing_fields}")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": f"Missing required fields: {', '.join(missing_fields)}"
+    #             }), 400)
 
-            track_number_1, track_number_2 = data["track_number_1"], data["track_number_2"]
-            app.logger.info(f"Received request to swap songs at track numbers {track_number_1} and {track_number_2}")
+    #         artist, title, year, track_number = data["artist"], data["title"], data["year"], data["track_number"]
+    #         app.logger.info(f"Received request to move goal to track number {track_number}: {artist} - {title} ({year})")
 
-            song_1 = playlist_model.get_song_by_track_number(track_number_1)
-            song_2 = playlist_model.get_song_by_track_number(track_number_2)
-            playlist_model.swap_songs_in_playlist(song_1.id, song_2.id)
+    #         goal = goals.get_goal_by_compound_key(artist, title, year)
+    #         plan_model.move_goal_to_track_number(goal.id, track_number)
 
-            app.logger.info(f"Successfully swapped songs: {song_1.artist} - {song_1.title} <-> {song_2.artist} - {song_2.title}")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Swapped songs: {song_1.artist} - {song_1.title} <-> {song_2.artist} - {song_2.title}"
-            }), 200)
+    #         app.logger.info(f"Successfully moved goal to track {track_number}: {artist} - {title} ({year})")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"goal '{title}' by {artist} moved to track {track_number}"
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to swap songs in playlist: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while swapping songs",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to move goal to track number: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while moving the goal",
+    #             "details": str(e)
+    #         }), 500)
+
+
+    # @app.route('/api/swap-goals-in-plan', methods=['POST'])
+    # @login_required
+    # def swap_goals_in_plan() -> Response:
+    #     """Swap two goals in the plan by their track numbers.
+
+    #     Expected JSON Input:
+    #         - track_number_1 (int): The track number of the first goal.
+    #         - track_number_2 (int): The track number of the second goal.
+
+    #     Returns:
+    #         Response: JSON response indicating success or an error message.
+
+    #     Raises:
+    #         400 error if required fields are missing.
+    #         500 error if an error occurs while swapping goals in the plan.
+    #     """
+    #     try:
+    #         data = request.get_json()
+
+    #         required_fields = ["track_number_1", "track_number_2"]
+    #         missing_fields = [field for field in required_fields if field not in data]
+
+    #         if missing_fields:
+    #             app.logger.warning(f"Missing required fields: {missing_fields}")
+    #             return make_response(jsonify({
+    #                 "status": "error",
+    #                 "message": f"Missing required fields: {', '.join(missing_fields)}"
+    #             }), 400)
+
+    #         track_number_1, track_number_2 = data["track_number_1"], data["track_number_2"]
+    #         app.logger.info(f"Received request to swap goals at track numbers {track_number_1} and {track_number_2}")
+
+    #         goal_1 = plan_model.get_goal_by_track_number(track_number_1)
+    #         goal_2 = plan_model.get_goal_by_track_number(track_number_2)
+    #         plan_model.swap_goals_in_plan(goal_1.id, goal_2.id)
+
+    #         app.logger.info(f"Successfully swapped goals: {goal_1.artist} - {goal_1.title} <-> {goal_2.artist} - {goal_2.title}")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "message": f"Swapped goals: {goal_1.artist} - {goal_1.title} <-> {goal_2.artist} - {goal_2.title}"
+    #         }), 200)
+
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to swap goals in plan: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while swapping goals",
+    #             "details": str(e)
+    #         }), 500)
 
 
 
@@ -1467,38 +1467,38 @@ def create_app(config_class=ProductionConfig) -> Flask:
     ############################################################
 
 
-    @app.route('/api/song-leaderboard', methods=['GET'])
-    def get_song_leaderboard() -> Response:
-        """
-        Route to retrieve a leaderboard of songs sorted by play count.
+    # @app.route('/api/goal-leaderboard', methods=['GET'])
+    # def get_goal_leaderboard() -> Response:
+    #     """
+    #     Route to retrieve a leaderboard of goals sorted by play count.
 
-        Returns:
-            JSON response with a sorted leaderboard of songs.
+    #     Returns:
+    #         JSON response with a sorted leaderboard of goals.
 
-        Raises:
-            500 error if there is an issue generating the leaderboard.
+    #     Raises:
+    #         500 error if there is an issue generating the leaderboard.
 
-        """
-        try:
-            app.logger.info("Received request to generate song leaderboard")
+    #     """
+    #     try:
+    #         app.logger.info("Received request to generate goal leaderboard")
 
-            leaderboard_data = Songs.get_all_songs(sort_by_play_count=True)
+    #         leaderboard_data = goals.get_all_goals(sort_by_play_count=True)
 
-            app.logger.info(f"Successfully generated song leaderboard with {len(leaderboard_data)} entries")
-            return make_response(jsonify({
-                "status": "success",
-                "leaderboard": leaderboard_data
-            }), 200)
+    #         app.logger.info(f"Successfully generated goal leaderboard with {len(leaderboard_data)} entries")
+    #         return make_response(jsonify({
+    #             "status": "success",
+    #             "leaderboard": leaderboard_data
+    #         }), 200)
 
-        except Exception as e:
-            app.logger.error(f"Failed to generate song leaderboard: {e}")
-            return make_response(jsonify({
-                "status": "error",
-                "message": "An internal error occurred while generating the leaderboard",
-                "details": str(e)
-            }), 500)
+    #     except Exception as e:
+    #         app.logger.error(f"Failed to generate goal leaderboard: {e}")
+    #         return make_response(jsonify({
+    #             "status": "error",
+    #             "message": "An internal error occurred while generating the leaderboard",
+    #             "details": str(e)
+    #         }), 500)
 
-    return app
+    # return app
 
 if __name__ == '__main__':
     app = create_app()
