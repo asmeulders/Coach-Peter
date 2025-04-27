@@ -125,6 +125,10 @@ class Goals(db.Model):
             db.session.rollback()
             raise
 
+##############################################
+# Delete Goals
+##############################################
+
     @classmethod
     def delete_goal(cls, goal_id: int) -> None:
         """
@@ -153,6 +157,10 @@ class Goals(db.Model):
             logger.error(f"Database error while deleting goal with ID {goal_id}: {e}")
             db.session.rollback()
             raise
+
+###############################################
+# Get Goals 
+###############################################
 
     @classmethod
     def get_goal_by_id(cls, goal_id: int) -> "Goals":
@@ -186,6 +194,231 @@ class Goals(db.Model):
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving goal by ID {goal_id}: {e}")
             raise
+
+#Returns all goals with wanted nutritional value 
+    @classmethod
+    def get_goals_by_nutritional(cls, nutritional: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific nutritional field.
+
+        Args:
+            nutritional (str): The nutritional goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the nutritional value.
+
+        Raises:
+            ValueError: If no goals with the given nutritional value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with nutritional value '{nutritional}'")
+
+        try:
+            goals = cls.query.filter_by(nutritional=nutritional).all()
+
+            if not goals:
+                logger.info(f"No goals found with nutritional value '{nutritional}'")
+                raise ValueError(f"No goals found with nutritional value '{nutritional}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with nutritional value '{nutritional}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by nutritional value '{nutritional}': {e}")
+            raise
+
+#Returns all goals with wanted physical value 
+    @classmethod
+    def get_goals_by_physical(cls, physical: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific physical field.
+
+        Args:
+            physical (str): The physical goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the physical value.
+
+        Raises:
+            ValueError: If no goals with the given physical value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with physical value '{physical}'")
+
+        try:
+            goals = cls.query.filter_by(physical=physical).all()
+
+            if not goals:
+                logger.info(f"No goals found with physical value '{physical}'")
+                raise ValueError(f"No goals found with physical value '{physical}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with physical value '{physical}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by physical value '{physical}': {e}")
+            raise
+
+#Returns all goals with wanted recurring value 
+    @classmethod
+    def get_goals_by_recurring(cls, recurring: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific recurring field.
+
+        Args:
+            recurring (str): The recurring goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the recurring value.
+
+        Raises:
+            ValueError: If no goals with the given recurring value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with recurring value '{recurring}'")
+
+        try:
+            goals = cls.query.filter_by(recurring=recurring).all()
+
+            if not goals:
+                logger.info(f"No goals found with recurring value '{recurring}'")
+                raise ValueError(f"No goals found with recurring value '{recurring}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with recurring value '{recurring}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by recurring value '{recurring}': {e}")
+            raise
+
+#Returns all goals with wanted one_time value 
+    @classmethod
+    def get_goals_by_one_time(cls, one_time: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific one_time field.
+
+        Args:
+            one_time (str): The one_time goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the one_time value.
+
+        Raises:
+            ValueError: If no goals with the given one_time value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with one_time value '{one_time}'")
+
+        try:
+            goals = cls.query.filter_by(one_time=one_time).all()
+
+            if not goals:
+                logger.info(f"No goals found with one_time value '{one_time}'")
+                raise ValueError(f"No goals found with one_time value '{one_time}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with one_time value '{one_time}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by one_time value '{one_time}': {e}")
+            raise
+
+#Returns all goals with wanted upper_body value 
+    @classmethod
+    def get_goals_by_upper_body(cls, upper_body: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific upper_body field.
+
+        Args:
+            upper_body (str): The upper_body goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the upper_body value.
+
+        Raises:
+            ValueError: If no goals with the given upper_body value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with upper_body value '{upper_body}'")
+
+        try:
+            goals = cls.query.filter_by(upper_body=upper_body).all()
+
+            if not goals:
+                logger.info(f"No goals found with upper_body value '{upper_body}'")
+                raise ValueError(f"No goals found with upper_body value '{upper_body}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with upper_body value '{upper_body}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by upper_body value '{upper_body}': {e}")
+            raise
+
+#Returns all goals with wanted core value 
+    @classmethod
+    def get_goals_by_core(cls, core: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific core field.
+
+        Args:
+            core (str): The core goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the core value.
+
+        Raises:
+            ValueError: If no goals with the given core value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with core value '{core}'")
+
+        try:
+            goals = cls.query.filter_by(core=core).all()
+
+            if not goals:
+                logger.info(f"No goals found with core value '{core}'")
+                raise ValueError(f"No goals found with core value '{core}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with core value '{core}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by core value '{core}': {e}")
+            raise
+
+#Returns all goals with wanted lower_body value 
+    @classmethod
+    def get_goals_by_lower_body(cls, lower_body: str) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific lower_body field.
+
+        Args:
+            lower_body (str): The lower_body goal to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the lower_body value.
+
+        Raises:
+            ValueError: If no goals with the given lower_body value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with lower_body value '{lower_body}'")
+
+        try:
+            goals = cls.query.filter_by(lower_body=lower_body).all()
+
+            if not goals:
+                logger.info(f"No goals found with lower_body value '{lower_body}'")
+                raise ValueError(f"No goals found with lower_body value '{lower_body}'")
+
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with lower_body value '{lower_body}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by lower_body value '{lower_body}': {e}")
+            raise
+
 
     # @classmethod
     # def get_song_by_compound_key(cls, artist: str, title: str, year: int) -> "Songs":
