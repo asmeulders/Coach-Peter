@@ -58,6 +58,9 @@ class Goals(db.Model):
             raise ValueError("Core goal must be a non-empty string if provided.")
         if self.lower_body is not None and (not isinstance(self.lower_body, str) or not self.lower_body.strip()):
             raise ValueError("Lower body goal must be a non-empty string if provided.")
+        # does not allow an empty goal creation
+        if not any([self.nutritional, self.fitness, self.recurring, self.one_time, self.upper_body, self.core_body, self.lower_body]):
+            raise ValueError("At least one goal field must be provided.")
 
         # if not self.title or not isinstance(self.title, str):
         #     raise ValueError("Title must be a non-empty string.")
@@ -90,36 +93,35 @@ class Goals(db.Model):
         logger.info(f"Received request to create goal: {artist} - {title} ({year})")
 
         try:
-            song = Songs(
-                artist=artist.strip(),
-                title=title.strip(),
-                year=year,
-                genre=genre.strip(),
-                duration=duration
+            goal = Goals(
+                nutritional=nutritional.strip() if nutritional else None,
+                physical=physical.strip() if physical else None,
+                recurring=recurring.strip() if recurring else None,
+                one_time=one_time.strip() if one_time else None,
+                upper_body=upper_body.strip() if upper_body else None,
+                core=core.strip() if core else None,
+                lower_body=lower_body.strip() if lower_body else None
             )
-            song.validate()
+            goal.validate()
         except ValueError as e:
             logger.warning(f"Validation failed: {e}")
             raise
 
         try:
-            # Check for existing song with same compound key (artist, title, year)
-            existing = Songs.query.filter_by(artist=artist.strip(), title=title.strip(), year=year).first()
-            if existing:
-                logger.error(f"Song already exists: {artist} - {title} ({year})")
-                raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} already exists.")
-
-            db.session.add(song)
+            db.session.add(goal)
             db.session.commit()
-            logger.info(f"Song successfully added: {artist} - {title} ({year})")
-
-        except IntegrityError:
-            logger.error(f"Song already exists: {artist} - {title} ({year})")
-            db.session.rollback()
-            raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} already exists.")
+            logger.info(f"Goal successfully added with nutritional goals: {nutritional}, physical goals: {physical}, 
+                        recurring goals: {recurring}, one_time goals: {one_time}, upper_body goals: {upper_body}, 
+                        core goals: {core}, lower_body goals: {lower_body}.")
+                        
+        # Duplicate
+        # except IntegrityError:
+        #     logger.error(f"Song already exists: {artist} - {title} ({year})")
+        #     db.session.rollback()
+        #     raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} already exists.")
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error while creating song: {e}")
+            logger.error(f"Database error while creating goal: {e}")
             db.session.rollback()
             raise
 
