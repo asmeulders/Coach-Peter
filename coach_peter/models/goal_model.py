@@ -457,51 +457,46 @@ class Goals(db.Model):
     #         raise
 
     @classmethod
-    def get_all_songs(cls, sort_by_play_count: bool = False) -> list[dict]:
+    def get_all_goals(cls) -> list[dict]:
         """
-        Retrieves all songs from the catalog as dictionaries.
-
-        Args:
-            sort_by_play_count (bool): If True, sort the songs by play count in descending order.
+        Retrieves all goals from the database as dictionaries.
 
         Returns:
-            list[dict]: A list of dictionaries representing all songs with play_count.
+            list[dict]: A list of dictionaries representing all goals.
 
         Raises:
             SQLAlchemyError: If any database error occurs.
         """
-        logger.info("Attempting to retrieve all songs from the catalog")
+        logger.info("Attempting to retrieve all goals from the database")
 
         try:
-            query = cls.query
-            if sort_by_play_count:
-                query = query.order_by(cls.play_count.desc())
+            goals = cls.query.all()
 
-            songs = query.all()
-
-            if not songs:
-                logger.warning("The song catalog is empty.")
+            if not goals:
+                logger.warning("The goals table is empty.")
                 return []
 
             results = [
                 {
-                    "id": song.id,
-                    "artist": song.artist,
-                    "title": song.title,
-                    "year": song.year,
-                    "genre": song.genre,
-                    "duration": song.duration,
-                    "play_count": song.play_count,
+                    "id": goal.id,
+                    "nutritional": goal.nutritional,
+                    "fitness": goal.fitness,
+                    "recurring": goal.recurring,
+                    "one_time": goal.one_time,
+                    "upper_body": goal.upper_body,
+                    "core": goal.core,
+                    "lower_body": goal.lower_body,
                 }
-                for song in songs
+                for goal in goals
             ]
 
-            logger.info(f"Retrieved {len(results)} songs from the catalog")
+            logger.info(f"Retrieved {len(results)} goals from the database")
             return results
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error while retrieving all songs: {e}")
+            logger.error(f"Database error while retrieving all goals: {e}")
             raise
+
 
     # @classmethod
     # def get_random_song(cls) -> dict:
