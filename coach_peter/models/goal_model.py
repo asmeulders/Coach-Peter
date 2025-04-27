@@ -90,7 +90,7 @@ class Goals(db.Model):
             ValueError: If any field is invalid or if a song with the same compound key already exists.
             SQLAlchemyError: For any other database-related issues.
         """
-        logger.info(f"Received request to create goal: {artist} - {title} ({year})")
+        logger.info(f"Received request to create goal.")
 
         try:
             goal = Goals(
@@ -113,7 +113,7 @@ class Goals(db.Model):
             logger.info(f"Goal successfully added with nutritional goals: {nutritional}, physical goals: {physical}, 
                         recurring goals: {recurring}, one_time goals: {one_time}, upper_body goals: {upper_body}, 
                         core goals: {core}, lower_body goals: {lower_body}.")
-                        
+
         # Duplicate
         # except IntegrityError:
         #     logger.error(f"Song already exists: {artist} - {title} ({year})")
@@ -126,31 +126,31 @@ class Goals(db.Model):
             raise
 
     @classmethod
-    def delete_song(cls, song_id: int) -> None:
+    def delete_goal(cls, goal_id: int) -> None:
         """
-        Permanently deletes a song from the catalog by ID.
+        Permanently deletes a goal by ID.
 
         Args:
-            song_id (int): The ID of the song to delete.
+            goal_id (int): The ID of the goal to delete.
 
         Raises:
-            ValueError: If the song with the given ID does not exist.
+            ValueError: If the goal with the given ID does not exist.
             SQLAlchemyError: For any database-related issues.
         """
-        logger.info(f"Received request to delete song with ID {song_id}")
+        logger.info(f"Received request to delete goal with ID {goal_id}")
 
         try:
-            song = cls.query.get(song_id)
-            if not song:
-                logger.warning(f"Attempted to delete non-existent song with ID {song_id}")
-                raise ValueError(f"Song with ID {song_id} not found")
+            goal = cls.query.get(goal_id)
+            if not goal:
+                logger.warning(f"Attempted to delete non-existent goal with ID {goal_id}")
+                raise ValueError(f"Goal with ID {goal_id} not found")
 
-            db.session.delete(song)
+            db.session.delete(goal)
             db.session.commit()
-            logger.info(f"Successfully deleted song with ID {song_id}")
+            logger.info(f"Successfully deleted goal with ID {goal_id}")
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error while deleting song with ID {song_id}: {e}")
+            logger.error(f"Database error while deleting goal with ID {goal_id}: {e}")
             db.session.rollback()
             raise
 
