@@ -2,10 +2,10 @@ import logging
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-#TODO####################################################################
-from playlist.db import db
-from playlist.utils.logger import configure_logger
-from playlist.utils.api_utils import get_random
+# Double check if correct db
+from fitness.db import db
+from fitness.utils.logger import configure_logger
+from fitness.utils.api_utils import get_random
 
 
 logger = logging.getLogger(__name__)
@@ -15,22 +15,24 @@ configure_logger(logger)
 class Goals(db.Model):
     """Represents a goal in the plan.
 
-    This model maps to the 'songs' table and stores metadata such as artist,
-    title, genre, release year, and duration. It also tracks play count.
+    This model maps to the 'goals' table and stores metadata such as nutritional, physical, recurring, 
+    one-time, upper body, core, and lower body goals.
 
-    Used in a Flask-SQLAlchemy application for playlist management,
-    user interaction, and data-driven song operations.
+    Used in a Flask-SQLAlchemy application for fitness management,
+    user interaction, and data-driven goal operations.
     """
 
-    __tablename__ = "Songs"
+    __tablename__ = "Goals"
     
-    #Change types for each parameter####################################
+    # Users can choose which types of goals they want 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nutritional = db.Column(db.String, nullable=False)
-    fitness = db.Column(db.String, nullable=False)
-    recurring = db.Column(db.Integer, nullable=False)
-    one_time = db.Column(db.String, nullable=False)
-    upper_body = db.Column(db.Integer, nullable=False)
+    nutritional = db.Column(db.String, nullable=True)
+    physical = db.Column(db.String, nullable=True)
+    recurring = db.Column(db.String, nullable=True)
+    one_time = db.Column(db.String, nullable=True)
+    upper_body = db.Column(db.String, nullable=True)
+    core = db.Column(db.String, nullable=True)
+    lower_body = db.Column(db.String, nullable=True)
     # play_count = db.Column(db.Integer, nullable=False, default=0)
 
     def validate(self) -> None:
@@ -39,34 +41,53 @@ class Goals(db.Model):
         Raises:
             ValueError: If any required fields are invalid.
         """
-        if not self.artist or not isinstance(self.artist, str):
-            raise ValueError("Artist must be a non-empty string.")
-        if not self.title or not isinstance(self.title, str):
-            raise ValueError("Title must be a non-empty string.")
-        if not isinstance(self.year, int) or self.year <= 1900:
-            raise ValueError("Year must be an integer greater than 1900.")
-        if not self.genre or not isinstance(self.genre, str):
-            raise ValueError("Genre must be a non-empty string.")
-        if not isinstance(self.duration, int) or self.duration <= 0:
-            raise ValueError("Duration must be a positive integer.")
+        
+        # If a field is provided, check that it's a non-empty string
+        # Checks only if field is provided (because it is nullable) and if provided, must be a non-empty string
+        if self.nutritional is not None and (not isinstance(self.nutritional, str) or not self.nutritional.strip()):
+            raise ValueError("Nutritional goal must be a non-empty string if provided.")
+        if self.physical is not None and (not isinstance(self.physical, str) or not self.physical.strip()):
+            raise ValueError("Physical goal must be a non-empty string if provided.")
+        if self.recurring is not None and (not isinstance(self.recurring, str) or not self.recurring.strip()):
+            raise ValueError("Recurring goal must be a non-empty string if provided.")
+        if self.one_time is not None and (not isinstance(self.one_time, str) or not self.one_time.strip()):
+            raise ValueError("One-time goal must be a non-empty string if provided.")
+        if self.upper_body is not None and (not isinstance(self.upper_body, str) or not self.upper_body.strip()):
+            raise ValueError("Upper body goal must be a non-empty string if provided.")
+        if self.core is not None and (not isinstance(self.core, str) or not self.core.strip()):
+            raise ValueError("Core goal must be a non-empty string if provided.")
+        if self.lower_body is not None and (not isinstance(self.lower_body, str) or not self.lower_body.strip()):
+            raise ValueError("Lower body goal must be a non-empty string if provided.")
+
+        # if not self.title or not isinstance(self.title, str):
+        #     raise ValueError("Title must be a non-empty string.")
+        # if not isinstance(self.year, int) or self.year <= 1900:
+        #     raise ValueError("Year must be an integer greater than 1900.")
+        # if not self.genre or not isinstance(self.genre, str):
+        #     raise ValueError("Genre must be a non-empty string.")
+        # if not isinstance(self.duration, int) or self.duration <= 0:
+        #     raise ValueError("Duration must be a positive integer.")
 
     @classmethod
-    def create_song(cls, artist: str, title: str, year: int, genre: str, duration: int) -> None:
+    def create_goal(cls, nutritional: str, physical: str, recurring: str, one_time: str, upper_body: str, core: str, lower_body: str, ) -> None:
         """
-        Creates a new song in the songs table using SQLAlchemy.
+        Creates a new goal in the goals table using SQLAlchemy.
 
         Args:
-            artist (str): The artist's name.
-            title (str): The song title.
-            year (int): The year the song was released.
-            genre (str): The song genre.
-            duration (int): The duration of the song in seconds.
+            nutritional (str): A nutritional fitness goal the user wants to achieve.
+            physical (str): A physical fitness goal the user wants to achieve.
+            recurring (str): A recurring fitness goal the user wants to achieve.
+            one_time (str): A one time fitness goal the user wants to achieve.
+            upper_body (str): An upper body fitness goal the user wants to achieve.
+            core (str): A core fitness goal the user wants to achieve.
+            lower_body (str): A lower body fitness goal the user wants to achieve.
+
 
         Raises:
             ValueError: If any field is invalid or if a song with the same compound key already exists.
             SQLAlchemyError: For any other database-related issues.
         """
-        logger.info(f"Received request to create song: {artist} - {title} ({year})")
+        logger.info(f"Received request to create goal: {artist} - {title} ({year})")
 
         try:
             song = Songs(
@@ -162,41 +183,41 @@ class Goals(db.Model):
             logger.error(f"Database error while retrieving song by ID {song_id}: {e}")
             raise
 
-    @classmethod
-    def get_song_by_compound_key(cls, artist: str, title: str, year: int) -> "Songs":
-        """
-        Retrieves a song from the catalog by its compound key (artist, title, year).
+    # @classmethod
+    # def get_song_by_compound_key(cls, artist: str, title: str, year: int) -> "Songs":
+    #     """
+    #     Retrieves a song from the catalog by its compound key (artist, title, year).
 
-        Args:
-            artist (str): The artist of the song.
-            title (str): The title of the song.
-            year (int): The year the song was released.
+    #     Args:
+    #         artist (str): The artist of the song.
+    #         title (str): The title of the song.
+    #         year (int): The year the song was released.
 
-        Returns:
-            Songs: The song instance matching the provided compound key.
+    #     Returns:
+    #         Songs: The song instance matching the provided compound key.
 
-        Raises:
-            ValueError: If no matching song is found.
-            SQLAlchemyError: If a database error occurs.
-        """
-        logger.info(f"Attempting to retrieve song with artist '{artist}', title '{title}', and year {year}")
+    #     Raises:
+    #         ValueError: If no matching song is found.
+    #         SQLAlchemyError: If a database error occurs.
+    #     """
+    #     logger.info(f"Attempting to retrieve song with artist '{artist}', title '{title}', and year {year}")
 
-        try:
-            song = cls.query.filter_by(artist=artist.strip(), title=title.strip(), year=year).first()
+    #     try:
+    #         song = cls.query.filter_by(artist=artist.strip(), title=title.strip(), year=year).first()
 
-            if not song:
-                logger.info(f"Song with artist '{artist}', title '{title}', and year {year} not found")
-                raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} not found")
+    #         if not song:
+    #             logger.info(f"Song with artist '{artist}', title '{title}', and year {year} not found")
+    #             raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} not found")
 
-            logger.info(f"Successfully retrieved song: {song.artist} - {song.title} ({song.year})")
-            return song
+    #         logger.info(f"Successfully retrieved song: {song.artist} - {song.title} ({song.year})")
+    #         return song
 
-        except SQLAlchemyError as e:
-            logger.error(
-                f"Database error while retrieving song by compound key "
-                f"(artist '{artist}', title '{title}', year {year}): {e}"
-            )
-            raise
+    #     except SQLAlchemyError as e:
+    #         logger.error(
+    #             f"Database error while retrieving song by compound key "
+    #             f"(artist '{artist}', title '{title}', year {year}): {e}"
+    #         )
+    #         raise
 
     @classmethod
     def get_all_songs(cls, sort_by_play_count: bool = False) -> list[dict]:
@@ -245,48 +266,48 @@ class Goals(db.Model):
             logger.error(f"Database error while retrieving all songs: {e}")
             raise
 
-    @classmethod
-    def get_random_song(cls) -> dict:
-        """
-        Retrieves a random song from the catalog as a dictionary.
+    # @classmethod
+    # def get_random_song(cls) -> dict:
+    #     """
+    #     Retrieves a random song from the catalog as a dictionary.
 
-        Returns:
-            dict: A randomly selected song dictionary.
-        """
-        all_songs = cls.get_all_songs()
+    #     Returns:
+    #         dict: A randomly selected song dictionary.
+    #     """
+    #     all_songs = cls.get_all_songs()
 
-        if not all_songs:
-            logger.warning("Cannot retrieve random song because the song catalog is empty.")
-            raise ValueError("The song catalog is empty.")
+    #     if not all_songs:
+    #         logger.warning("Cannot retrieve random song because the song catalog is empty.")
+    #         raise ValueError("The song catalog is empty.")
 
-        index = get_random(len(all_songs))
-        logger.info(f"Random index selected: {index} (total songs: {len(all_songs)})")
+    #     index = get_random(len(all_songs))
+    #     logger.info(f"Random index selected: {index} (total songs: {len(all_songs)})")
 
-        return all_songs[index - 1]
+    #     return all_songs[index - 1]
 
-    def update_play_count(self) -> None:
-        """
-        Increments the play count of the current song instance.
+    # def update_play_count(self) -> None:
+    #     """
+    #     Increments the play count of the current song instance.
 
-        Raises:
-            ValueError: If the song does not exist in the database.
-            SQLAlchemyError: If any database error occurs.
-        """
+    #     Raises:
+    #         ValueError: If the song does not exist in the database.
+    #         SQLAlchemyError: If any database error occurs.
+    #     """
 
-        logger.info(f"Attempting to update play count for song with ID {self.id}")
+    #     logger.info(f"Attempting to update play count for song with ID {self.id}")
 
-        try:
-            song = Songs.query.get(self.id)
-            if not song:
-                logger.warning(f"Cannot update play count: Song with ID {self.id} not found.")
-                raise ValueError(f"Song with ID {self.id} not found")
+    #     try:
+    #         song = Songs.query.get(self.id)
+    #         if not song:
+    #             logger.warning(f"Cannot update play count: Song with ID {self.id} not found.")
+    #             raise ValueError(f"Song with ID {self.id} not found")
 
-            song.play_count += 1
-            db.session.commit()
+    #         song.play_count += 1
+    #         db.session.commit()
 
-            logger.info(f"Play count incremented for song with ID: {self.id}")
+    #         logger.info(f"Play count incremented for song with ID: {self.id}")
 
-        except SQLAlchemyError as e:
-            logger.error(f"Database error while updating play count for song with ID {self.id}: {e}")
-            db.session.rollback()
-            raise
+    #     except SQLAlchemyError as e:
+    #         logger.error(f"Database error while updating play count for song with ID {self.id}: {e}")
+    #         db.session.rollback()
+    #         raise
