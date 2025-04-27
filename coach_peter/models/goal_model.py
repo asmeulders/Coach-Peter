@@ -155,34 +155,36 @@ class Goals(db.Model):
             raise
 
     @classmethod
-    def get_song_by_id(cls, song_id: int) -> "Songs":
+    def get_goal_by_id(cls, goal_id: int) -> "Goals":
         """
-        Retrieves a song from the catalog by its ID.
+        Retrieves a goal by its ID.
 
         Args:
-            song_id (int): The ID of the song to retrieve.
+            goal_id (int): The ID of the goal to retrieve.
 
         Returns:
-            Songs: The song instance corresponding to the ID.
+            Goals: The goal instance corresponding to the ID.
 
         Raises:
-            ValueError: If no song with the given ID is found.
+            ValueError: If no goal with the given ID is found.
             SQLAlchemyError: If a database error occurs.
         """
-        logger.info(f"Attempting to retrieve song with ID {song_id}")
+        logger.info(f"Attempting to retrieve goal with ID {goal_id}")
 
         try:
-            song = cls.query.get(song_id)
+            song = cls.query.get(goal_id)
 
-            if not song:
-                logger.info(f"Song with ID {song_id} not found")
-                raise ValueError(f"Song with ID {song_id} not found")
+            if not goal:
+                logger.info(f"Goal with ID {goal_id} not found")
+                raise ValueError(f"Goal with ID {goal_id} not found")
 
-            logger.info(f"Successfully retrieved song: {song.artist} - {song.title} ({song.year})")
-            return song
+            logger.info(f"Successfully retrieved goal: {nutritional}, physical goals: {physical}, 
+                        recurring goals: {recurring}, one_time goals: {one_time}, upper_body goals: {upper_body}, 
+                        core goals: {core}, lower_body goals: {lower_body}.")
+            return goal
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error while retrieving song by ID {song_id}: {e}")
+            logger.error(f"Database error while retrieving goal by ID {goal_id}: {e}")
             raise
 
     # @classmethod
