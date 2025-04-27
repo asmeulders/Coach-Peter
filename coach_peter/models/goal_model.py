@@ -59,7 +59,7 @@ class Goals(db.Model):
         if self.lower_body is not None and (not isinstance(self.lower_body, str) or not self.lower_body.strip()):
             raise ValueError("Lower body goal must be a non-empty string if provided.")
         # does not allow an empty goal creation
-        if not any([self.nutritional, self.fitness, self.recurring, self.one_time, self.upper_body, self.core_body, self.lower_body]):
+        if not any([self.nutritional, self.physical, self.recurring, self.one_time, self.upper_body, self.core, self.lower_body]):
             raise ValueError("At least one goal field must be provided.")
 
         # if not self.title or not isinstance(self.title, str):
@@ -480,7 +480,7 @@ class Goals(db.Model):
                 {
                     "id": goal.id,
                     "nutritional": goal.nutritional,
-                    "fitness": goal.fitness,
+                    "physical": goal.physical,
                     "recurring": goal.recurring,
                     "one_time": goal.one_time,
                     "upper_body": goal.upper_body,
@@ -495,6 +495,70 @@ class Goals(db.Model):
 
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving all goals: {e}")
+            raise
+
+##########################################
+# Update Goals
+##########################################
+    @classmethod
+    def update_goal(cls, goal_id: int, nutritional: str = None, physical: str = None, 
+                    recurring: str = None, one_time: str = None, upper_body: str = None, 
+                    core: str = None, lower_body: str = None) -> "Goals":
+        """
+        Updates a goal in the database by its ID.
+
+        Args:
+            goal_id (int): The ID of the goal to update.
+            nutritional (str, optional): The new nutritional goal value.
+            physical (str, optional): The new physical goal value.
+            recurring (str, optional): The new recurring goal value.
+            one_time (str, optional): The new one-time goal value.
+            upper_body (str, optional): The new upper body goal value.
+            core (str, optional): The new core body goal value.
+            lower_body (str, optional): The new lower body goal value.
+
+        Returns:
+            Goals: The updated goal instance.
+
+        Raises:
+            ValueError: If the goal with the given ID does not exist.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to update goal with ID {goal_id}")
+
+        try:
+            # Retrieve the goal by ID
+            goal = cls.query.get(goal_id)
+
+            if not goal:
+                logger.warning(f"Goal with ID {goal_id} not found")
+                raise ValueError(f"Goal with ID {goal_id} not found")
+
+            # Update fields only if provided (None will leave them unchanged)
+            if nutritional is not None:
+                goal.nutritional = nutritional
+            if physical is not None:
+                goal.physical = phsyical
+            if recurring is not None:
+                goal.recurring = recurring
+            if one_time is not None:
+                goal.one_time = one_time
+            if upper_body is not None:
+                goal.upper_body = upper_body
+            if core is not None:
+                goal.core = core
+            if lower_body is not None:
+                goal.lower_body = lower_body
+
+            # Commit the changes
+            db.session.commit()
+
+            logger.info(f"Successfully updated goal with ID {goal_id}")
+            return goal
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while updating goal with ID {goal_id}: {e}")
+            db.session.rollback()
             raise
 
 
