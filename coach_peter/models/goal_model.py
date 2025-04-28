@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 # Double check if correct db
 from fitness.db import db
 from fitness.utils.logger import configure_logger
-from fitness.utils.api_utils import get_random
+# from fitness.utils.api_utils import get_random
 
 
 logger = logging.getLogger(__name__)

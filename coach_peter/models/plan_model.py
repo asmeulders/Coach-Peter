@@ -4,7 +4,7 @@ import time
 from typing import List
 
 from coach_peter.models.goal_model import Goals
-from coach_peter.utils.api_utils import get_random
+# from coach_peter.utils.api_utils import get_random
 from coach_peter.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
