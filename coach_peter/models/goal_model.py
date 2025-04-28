@@ -110,9 +110,7 @@ class Goals(db.Model):
         try:
             db.session.add(goal)
             db.session.commit()
-            logger.info(f"Goal successfully added with nutritional goals: {nutritional}, physical goals: {physical}, 
-                        recurring goals: {recurring}, one_time goals: {one_time}, upper_body goals: {upper_body}, 
-                        core goals: {core}, lower_body goals: {lower_body}.")
+            logger.info(f"Goal successfully added with nutritional goals: {nutritional}, physical goals: {physical}, recurring goals: {recurring}, one_time goals: {one_time}, upper_body goals: {upper_body}, core goals: {core}, lower_body goals: {lower_body}.")
 
         # Duplicate
         # except IntegrityError:
@@ -180,15 +178,13 @@ class Goals(db.Model):
         logger.info(f"Attempting to retrieve goal with ID {goal_id}")
 
         try:
-            song = cls.query.get(goal_id)
+            goal = cls.query.get(goal_id)
 
             if not goal:
                 logger.info(f"Goal with ID {goal_id} not found")
                 raise ValueError(f"Goal with ID {goal_id} not found")
 
-            logger.info(f"Successfully retrieved goal: {nutritional}, physical goals: {physical}, 
-                        recurring goals: {recurring}, one_time goals: {one_time}, upper_body goals: {upper_body}, 
-                        core goals: {core}, lower_body goals: {lower_body}.")
+            logger.info(f"Successfully retrieved goal: {goal.nutritional}, physical goals: {goal.physical}, recurring goals: {goal.recurring}, one_time goals: {goal.one_time}, upper_body goals: {goal.upper_body}, core goals: {goal.core}, lower_body goals: {goal.lower_body}.")
             return goal
 
         except SQLAlchemyError as e:
@@ -538,7 +534,7 @@ class Goals(db.Model):
             if nutritional is not None:
                 goal.nutritional = nutritional
             if physical is not None:
-                goal.physical = phsyical
+                goal.physical = physical
             if recurring is not None:
                 goal.recurring = recurring
             if one_time is not None:
