@@ -43,6 +43,7 @@ def fetch_recommendation(target):
 
     if not exercises:
         logger.warning(f"No exercises found for body part: {target}")
+        raise ValueError(f"Invalid or unsupported body part: {target}")
     else:
         logger.info(f"Found {len(exercises)} exercises for body part: {target}")
 
