@@ -25,7 +25,7 @@ class Goals(db.Model):
     
     # Users can choose which types of goals they want 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    target = db.Column(db.Integer, nullable=False)
+    target = db.Column(db.String, nullable=False)
     # recurring = db.Column(db.String, nullable=True)
     # play_count = db.Column(db.Integer, nullable=False, default=0)
 
