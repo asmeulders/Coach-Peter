@@ -8,7 +8,7 @@ from api_utils import fetch_data, fetch_recommendation
 
 @pytest.fixture
 ##def mock_random_org(mocker):
-def mock_exerciseDB(mocker)
+def mock_exerciseDB(mocker):
     # Patch the requests.get call
     # requests.get returns an object, which we have replaced with a mock object
     mock_response = mocker.Mock()
@@ -26,7 +26,7 @@ def test_fetch_data(mock_exerciseDB):
     {
         "bodyPart": "chest",
         "equipment": "body weight",
-        "gifUrl": "https://example.com/pushup.gif"
+        "gifUrl": "https://example.com/pushup.gif",
         "id": "0001",
         "name": "Push-up",
         "target": "pectorals",
@@ -36,7 +36,7 @@ def test_fetch_data(mock_exerciseDB):
     {
         "bodyPart": "chest",
         "equipment": "barbell",
-        "gifUrl": "https://example.com/benchpress.gif"
+        "gifUrl": "https://example.com/benchpress.gif",
         "id": "0002",
         "name": "Bench Press",
         "target": "pectorals",
@@ -55,7 +55,7 @@ def test_fetch_data(mock_exerciseDB):
     {
         "bodyPart": "chest",
         "equipment": "body weight",
-        "gifUrl": "https://example.com/pushup.gif"
+        "gifUrl": "https://example.com/pushup.gif",
         "id": "0001",
         "name": "Push-up",
         "target": "pectorals",
@@ -65,7 +65,7 @@ def test_fetch_data(mock_exerciseDB):
     {
         "bodyPart": "chest",
         "equipment": "barbell",
-        "gifUrl": "https://example.com/benchpress.gif"
+        "gifUrl": "https://example.com/benchpress.gif",
         "id": "0002",
         "name": "Bench Press",
         "target": "pectorals",
@@ -117,7 +117,7 @@ def test_fetch_recommendation_success(mock_exerciseDB):
     {
         "bodyPart": "chest",
         "equipment": "body weight",
-        "gifUrl": "https://example.com/pushup.gif"
+        "gifUrl": "https://example.com/pushup.gif",
         "id": "0001",
         "name": "Push-up",
         "target": "pectorals",
@@ -127,7 +127,7 @@ def test_fetch_recommendation_success(mock_exerciseDB):
     {
         "bodyPart": "chest",
         "equipment": "barbell",
-        "gifUrl": "https://example.com/benchpress.gif"
+        "gifUrl": "https://example.com/benchpress.gif",
         "id": "0002",
         "name": "Bench Press",
         "target": "pectorals",
