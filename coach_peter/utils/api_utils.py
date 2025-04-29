@@ -4,15 +4,15 @@ import requests
 
 from coach_peter.utils.logger import configure_logger
 
-BASE_URL = os.getenv("EXERCISEDB_BASE_URL", "https://exercisedb.p.rapidapi.com")
-EXERCISEDB_API_KEY = os.getenv("EXERCISEDB_API_KEY")
+BASE_URL = os.getenv("EXERCISE_DB_BASE_URL", "https://exercisedb.p.rapidapi.com")
+EXERCISE_DB_API_KEY = os.getenv("EXERCISE_DB_API_KEY")
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
 def fetch_data(url, params=None):
     headers = {
-        "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+        "X-RapidAPI-Key": EXERCISE_DB_API_KEY,
         "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
     }
     try:
@@ -27,23 +27,23 @@ def fetch_data(url, params=None):
         logger.error(f"Request failed: {e}")
         raise RuntimeError(f"Request failed: {e}")
 
-def fetch_recommendation(body_part):
+def fetch_recommendation(target):
     """
-    Fetch exercises from the ExerciseDB API based on the body part that the user wants to exercise.
+    Fetch exercises from the ExerciseDB API based on the target that the user wants to exercise.
 
     Args:
-        body_part (str): Target body part (e.g., 'back', 'cardio', 'chest').
+        target (str): Target for goal (e.g., 'biceps', 'pectorals', 'cardiovascular system').
 
     Returns:
-        list: List of exercises matching the target body part.
+        list: List of exercises matching the target value.
     """
-    url = f"{BASE_URL}/exercises/bodyPart/{body_part}"
+    url = f"{BASE_URL}/exercises/target/{target}"
 
     exercises = fetch_data(url)
 
     if not exercises:
-        logger.warning(f"No exercises found for body part: {body_part}")
+        logger.warning(f"No exercises found for body part: {target}")
     else:
-        logger.info(f"Found {len(exercises)} exercises for body part: {body_part}")
+        logger.info(f"Found {len(exercises)} exercises for body part: {target}")
 
     return exercises
