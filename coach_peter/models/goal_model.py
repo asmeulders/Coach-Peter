@@ -15,8 +15,7 @@ configure_logger(logger)
 class Goals(db.Model):
     """Represents a goal in the plan.
 
-    This model maps to the 'goals' table and stores metadata such as nutritional, physical, recurring, 
-    one-time, upper body, core, and lower body goals.
+    This model maps to the 'goals' table and stores metadata for desired target areas.
 
     Used in a Flask-SQLAlchemy application for fitness management,
     user interaction, and data-driven goal operations.

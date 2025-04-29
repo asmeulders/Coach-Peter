@@ -94,7 +94,7 @@ class PlanModel:
             raise
 
         self.plan.append(goal.id)
-        logger.info(f"Successfully added to plan: ") # {goal.artist} - {goal.title} ({goal.year})")
+        logger.info(f"Successfully added to plan: {goal.target}")
 
 
     def remove_goal_by_goal_id(self, goal_id: int) -> None:
@@ -119,7 +119,7 @@ class PlanModel:
         self.plan.remove(goal_id)
         logger.info(f"Successfully removed goal with ID {goal_id} from the plan")
 
-    # def remove_goal_by_track_number(self, track_number: int) -> None:
+    # def remove_goal_by_track_number(self, track_number: int) -> None: TODO remove by target? could be a good one to have but would require SQL
     #     """Removes a goal from the plan by its track number (1-indexed).
 
     #     Args:
