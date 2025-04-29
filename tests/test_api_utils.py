@@ -151,17 +151,11 @@ def test_fetch_recommendation_success(mock_exerciseDB):
         timeout=5
     )
 
-def test_fetch_recommendation_empty(mock_requests_get):
+def test_invalid_fetch_recommendation(mock_requests_get):
     mock_response = mock_requests_get
     mock_response.json.return_value = []
 
     target = "toes"
-    exercises = fetch_recommendation(target)
 
-    assert exercises == []
-    requests.get.assert_called_once_with(
-        "https://exercisedb.p.rapidapi.com/exercises/bodyPart/toes",
-        headers={},
-        params=None,
-        timeout=5
-    )
+    with pytest.raises(ValueError, match="Invalid or unsupported body part: toes"):
+        fetch_recommendation(body_part)
