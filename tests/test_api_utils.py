@@ -1,60 +1,167 @@
 import pytest
 import requests
 
-# from playlist.utils.api_utils import get_random
-
+from api_utils import fetch_data, fetch_recommendation 
 
 # RANDOM_NUMBER = 4
 
 
 @pytest.fixture
-def mock_random_org(mocker):
+##def mock_random_org(mocker):
+def mock_exerciseDB(mocker)
     # Patch the requests.get call
     # requests.get returns an object, which we have replaced with a mock object
     mock_response = mocker.Mock()
     # We are giving that object a text attribute
-    mock_response.text = f"{RANDOM_NUMBER}"
     mocker.patch("requests.get", return_value=mock_response)
     return mock_response
 
-def test_get_random(mock_random_org):
-    """Test retrieving a random number from random.org.
+
+def test_fetch_data(mock_exerciseDB):
+    """Test fetching data from api
 
     """
-    result = get_random(10)
+    mock_response = mock_exerciseDB
+    mock_response.json.return_value = [
+    {
+        "bodyPart": "chest",
+        "equipment": "body weight",
+        "gifUrl": "https://example.com/pushup.gif"
+        "id": "0001",
+        "name": "Push-up",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"]        
+    },
+    
+    {
+        "bodyPart": "chest",
+        "equipment": "barbell",
+        "gifUrl": "https://example.com/benchpress.gif"
+        "id": "0002",
+        "name": "Bench Press",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"] 
+        
+    }
+    ]
 
-    # Assert that the result is the mocked random number
-    assert result == RANDOM_NUMBER, f"Expected random number {RANDOM_NUMBER}, but got {result}"
+    url = "https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest"
+    params = {"example": "param"}
+
+    result = fetch_data(url, params=params)
+
+    # Assert that the result is the mocked exercise list
+    assert result == [
+    {
+        "bodyPart": "chest",
+        "equipment": "body weight",
+        "gifUrl": "https://example.com/pushup.gif"
+        "id": "0001",
+        "name": "Push-up",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"]        
+    },
+    
+    {
+        "bodyPart": "chest",
+        "equipment": "barbell",
+        "gifUrl": "https://example.com/benchpress.gif"
+        "id": "0002",
+        "name": "Bench Press",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"] 
+        
+    }
+    ]
 
     # Ensure that the correct URL was called
-    requests.get.assert_called_once_with("https://www.random.org/integers/?num=1&min=1&col=1&base=10&format=plain&rnd=new&max=10", timeout=5)
+    requests.get.assert_called_once_with(
+        url,
+        headers = {
+            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+        },  
+        params=params,
+        timeout=5
+    )
 
-def test_get_random_request_failure(mocker):
-    """Test handling of a request failure when calling random.org.
+#############################
+
+def test_fetch_data_request_failure(mocker):
+    """Test handling of a request failure when calling API.
 
     """
     # Simulate a request failure
     mocker.patch("requests.get", side_effect=requests.exceptions.RequestException("Connection error"))
 
     with pytest.raises(RuntimeError, match="Request to random.org failed: Connection error"):
-        get_random(10)
+        fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
 
-def test_get_random_timeout(mocker):
-    """Test handling of a timeout when calling random.org.
+def test_fetch_data_timeout(mocker):
+    """Test handling of a timeout when calling API.
 
     """
     # Simulate a timeout
     mocker.patch("requests.get", side_effect=requests.exceptions.Timeout)
 
-    with pytest.raises(RuntimeError, match="Request to random.org timed out."):
-        get_random(10)
+    with pytest.raises(RuntimeError, match="Request to ExerciseDB timed out."):
+        fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
 
-def test_get_random_invalid_response(mock_random_org):
+def test_fetch_recommendation_success(mock_exerciseDB):
+
     """Test handling of an invalid response from random.org.
 
     """
-    # Simulate an invalid response (non-digit)
-    mock_random_org.text = "invalid_response"
+    mock_response = mock_requests_get
+    mock_response.json.return_value = [
+    {
+        "bodyPart": "chest",
+        "equipment": "body weight",
+        "gifUrl": "https://example.com/pushup.gif"
+        "id": "0001",
+        "name": "Push-up",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"]        
+    },
+    
+    {
+        "bodyPart": "chest",
+        "equipment": "barbell",
+        "gifUrl": "https://example.com/benchpress.gif"
+        "id": "0002",
+        "name": "Bench Press",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"] 
+        
+    }
+    ]
 
-    with pytest.raises(ValueError, match="Invalid response from random.org: invalid_response"):
-        get_random(10)
+    target = "chest"
+    exercises = fetch_recommendation(target)
+
+    assert len(exercises) == 2
+    assert exercises[0]["name"] == "Push-up"
+    requests.get.assert_called_once_with(
+        "https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest",
+        headers = {
+            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+        },  
+        params=params,
+        timeout=5
+    )
+
+def test_fetch_recommendation_empty(mock_requests_get):
+    mock_response = mock_requests_get
+    mock_response.json.return_value = []
+
+    target = "toes"
+    exercises = fetch_recommendation(target)
+
+    assert exercises == []
+    requests.get.assert_called_once_with(
+        "https://exercisedb.p.rapidapi.com/exercises/bodyPart/toes",
+        headers={},
+        params=None,
+        timeout=5
+    )
