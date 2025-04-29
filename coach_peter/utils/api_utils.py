@@ -4,57 +4,46 @@ import requests
 
 from coach_peter.utils.logger import configure_logger
 
-
-WERG_BASE_URL = os.getenv("WERG_BASE URL",
-                                "https://wger.de/api/v2/routine/")
-
+BASE_URL = os.getenv("EXERCISE_DB_BASE_URL", "https://exercisedb.p.rapidapi.com")
+EXERCISE_DB_API_KEY = os.getenv("EXERCISE_DB_API_KEY")
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
+def fetch_data(url, params=None):
+    headers = {
+        "X-RapidAPI-Key": EXERCISE_DB_API_KEY,
+        "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+    }
+    try:
+        logger.info(f"Fetching data from {url} with params {params}")
+        response = requests.get(url, headers=headers, params=params, timeout=5)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.Timeout:
+        logger.error("Request timed out.")
+        raise RuntimeError("Request timed out.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request failed: {e}")
+        raise RuntimeError(f"Request failed: {e}")
 
-def get_random(max: int) -> int:
+def fetch_recommendation(target):
     """
-    Fetches a random integer between 1 and max inclusive from random.org.
+    Fetch exercises from the ExerciseDB API based on the target that the user wants to exercise.
 
     Args:
-        max (int): The upper bound (inclusive) for the random number.
+        target (str): Target for goal (e.g., 'biceps', 'pectorals', 'cardiovascular system').
 
     Returns:
-        int: A random number between 1 and max.
-
-    Raises:
-        RuntimeError: If the request to random.org fails.
-        ValueError: If the response from random.org is not a valid integer.
+        list: List of exercises matching the target value.
     """
-    if max < 1:
-        raise ValueError("max must be at least 1")
+    url = f"{BASE_URL}/exercises/target/{target}"
 
-    # Construct the full URL dynamically
-    url = f"{RANDOM_ORG_BASE_URL}&max={max}"
+    exercises = fetch_data(url)
 
-    try:
-        # Log the request to random.org
-        logger.info(f"Fetching random number from {url}")
+    if not exercises:
+        logger.warning(f"No exercises found for body part: {target}")
+    else:
+        logger.info(f"Found {len(exercises)} exercises for body part: {target}")
 
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-
-        random_number_str = response.text.strip()
-
-        try:
-            random_number = int(random_number_str)
-        except ValueError:
-            logger.error(f"Invalid response from random.org: {random_number_str}")
-            raise ValueError(f"Invalid response from random.org: {random_number_str}")
-
-        logger.info(f"Received random number: {random_number}")
-        return random_number
-
-    except requests.exceptions.Timeout:
-        logger.error("Request to random.org timed out.")
-        raise RuntimeError("Request to random.org timed out.")
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Request to random.org failed: {e}")
-        raise RuntimeError(f"Request to random.org failed: {e}")
+    return exercises
