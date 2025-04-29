@@ -299,11 +299,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """Route to add a new goal to the catalog. TODO is catalog right word?
 
         Expected JSON Input:
-            # - artist (str): The artist's name. TODO FIX THIS
-            # - title (str): The goal title.
-            # - year (int): The year the goal was released.
-            # - genre (str): The genre of the goal.
-            # - duration (int): The duration of the goal in seconds.
+            - target (str): The goal's target muscle group.
 
         Returns:
             JSON response indicating the success of the goal addition.
@@ -318,7 +314,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         try:
             data = request.get_json()
 
-            required_fields = [] # ["artist", "title", "year", "genre", "duration"] TODO
+            required_fields = ["target"]
             missing_fields = [field for field in required_fields if field not in data]
 
             if missing_fields:
@@ -328,33 +324,25 @@ def create_app(config_class=ProductionConfig) -> Flask:
                     "message": f"Missing required fields: {', '.join(missing_fields)}"
                 }), 400)
 
-            # artist = data["artist"] # TODO once we get params
-            # title = data["title"]
-            # year = data["year"]
-            # genre = data["genre"]
-            # duration = data["duration"]
+            target = data["target"]
 
-            # if ( TODO once we get params
-            #     not isinstance(artist, str)
-            #     or not isinstance(title, str)
-            #     or not isinstance(year, int)
-            #     or not isinstance(genre, str)
-            #     or not isinstance(duration, int)
-            # ):
-            #     app.logger.warning("Invalid input data types")
-            #     return make_response(jsonify({
-            #         "status": "error",
-            #         "message": "Invalid input types: artist/title/genre should be strings, year and duration should be integers"
-            #     }), 400)
+            if (
+                not isinstance(target, str)
+            ):
+                app.logger.warning("Invalid input data types")
+                return make_response(jsonify({
+                    "status": "error",
+                    "message": "Invalid input types: target should be a string"
+                }), 400)
 
-            # app.logger.info(f"Adding goal: {artist} - {title} ({year}), Genre: {genre}, Duration: {duration}s")
-            # goals.create_goal(artist=artist, title=title, year=year, genre=genre, duration=duration)
+            app.logger.info(f"Adding goal: {target}")
+            Goals.create_goal(target=target)
 
-            # app.logger.info(f"goal added successfully: {artist} - {title}")
-            # return make_response(jsonify({
-            #     "status": "success",
-            #     "message": f"goal '{title}' by {artist} added successfully"
-            # }), 201)
+            app.logger.info(f"goal added successfully: {target}")
+            return make_response(jsonify({
+                "status": "success",
+                "message": f"goal with target: '{target}' added successfully"
+            }), 201)
 
         except Exception as e:
             app.logger.error(f"Failed to add goal: {e}")
@@ -413,10 +401,10 @@ def create_app(config_class=ProductionConfig) -> Flask:
     @app.route('/api/get-all-goals-from-catalog', methods=['GET'])
     @login_required
     def get_all_goals() -> Response:
-        """Route to retrieve all goals in the catalog (non-deleted), # TODO other option? (with an option to sort by play count.)
+        """Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target.
 
         TODO Query Parameter:
-            - sort_by_play_count (bool, optional): If true, sort goals by play count.
+            - sort_by_target (bool, optional): If true, sort goals by play target.
 
         Returns:
             JSON response containing the list of goals.
@@ -427,11 +415,11 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             # Extract query parameter for sorting by play count
-            sort_by_play_count = request.args.get('sort_by_play_count', 'false').lower() == 'true' # TODO remove this?
+            sort_by_target = request.args.get('sort_by_target', 'false').lower() == 'true'
 
-            app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_play_count={sort_by_play_count})")
+            app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_target={sort_by_target})")
 
-            goals = Goals.get_all_goals(sort_by_play_count=sort_by_play_count)
+            goals = Goals.get_all_goals(sort_by_targett=sort_by_target)
 
             app.logger.info(f"Successfully retrieved {len(goals)} goals from the catalog")
 
@@ -477,7 +465,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
                     "message": f"Goal with ID {goal_id} not found"
                 }), 400)
 
-            app.logger.info(f"Successfully retrieved goal: ") # TODO params - {goal.title} by {goal.artist} (ID {goal_id})")
+            app.logger.info(f"Successfully retrieved goal with target {goal.target}")
 
             return make_response(jsonify({
                 "status": "success",
@@ -494,7 +482,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    # @app.route('/api/get-goal-from-catalog-by-compound-key', methods=['GET'])
+    # @app.route('/api/get-goal-from-catalog-by-compound-key', methods=['GET']) TODO by target? but thats above so we should be fine
     # @login_required
     # def get_goal_by_compound_key() -> Response:
     #     """Route to retrieve a goal by its compound key (artist, title, year).
@@ -560,7 +548,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     #         }), 500)
 
 
-    # @app.route('/api/get-random-goal', methods=['GET']) TODO do we need this?
+    # @app.route('/api/get-random-goal', methods=['GET']) TODO do we need this? probably not
     # @login_required
     # def get_random_goal() -> Response:
     #     """Route to retrieve a random goal from the catalog.
@@ -608,15 +596,13 @@ def create_app(config_class=ProductionConfig) -> Flask:
     ############################################################
 
 
-    @app.route('/api/add-goal-to-plan', methods=['POST']) # TODO take a look at this because this uses the compound key
+    @app.route('/api/add-goal-to-plan', methods=['POST']) # TODO take a look at this because this uses the compound key. perhaps change to get goal by id instead of compound key
     @login_required
     def add_goal_to_plan() -> Response:
         """Route to add a goal to the plan by compound key (artist, title, year).
 
         Expected JSON Input:
-            - artist (str): The artist's name.
-            - title (str): The goal title.
-            - year (int): The year the goal was released.
+            - target (str): The targets of the goal.
 
         Returns:
             JSON response indicating success of the addition.
