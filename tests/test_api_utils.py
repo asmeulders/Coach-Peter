@@ -1,10 +1,10 @@
 import pytest
 import requests
 
-from playlist.utils.api_utils import get_random
+# from playlist.utils.api_utils import get_random
 
 
-RANDOM_NUMBER = 4
+# RANDOM_NUMBER = 4
 
 
 @pytest.fixture

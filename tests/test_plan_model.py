@@ -12,54 +12,46 @@ def plan_model():
 
 """Fixtures providing sample goals for the tests."""
 @pytest.fixture
-def goal_beatles(session): # change name
-    """Fixture for a _____ goal."""
+def goal_biceps(session): # change name
+    """Fixture for a biceps goal."""
     goal = Goals(
-        # artist="The Beatles",
-        # title="Come Together",
-        # year=1969,
-        # genre="Rock",
-        # duration=259
+       target = "biceps"
     )
     session.add(goal)
     session.commit()
     return goal
 
 @pytest.fixture
-def goal_nirvana(session):  # change name
-    """Fixture for a ______ goal."""
+def goal_pecs(session):  # change name
+    """Fixture for a pecs goal."""
     goal = Goals(
-        # artist="Nirvana",
-        # title="Smells Like Teen Spirit",
-        # year=1991,
-        # genre="Grunge",
-        # duration=301
+        target = "pectorals"
     )
     session.add(goal)
     session.commit()
     return goal
 
 @pytest.fixture
-def sample_plan(goal_beatles, goal_nirvana): # make a sample playlist
+def sample_plan(goal_biceps, goal_pectorals): # make a sample playlist
     """Fixture for a sample plan."""
-    return [goal_beatles, goal_nirvana]
+    return [goal_biceps, goal_pectorals]
 
 ##################################################
 # Add / Remove Goal Management Test Cases
 ##################################################
 
 
-def test_add_goal_to_plan(plan_model, goal_beatles, mocker): # change goal
+def test_add_goal_to_plan(plan_model, goal_biceps, mocker): # change goal
     """Test adding a goal to the plan."""
-    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_beatles) # check return value
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_biceps) # check return value
     plan_model.add_goal_to_plan(1)
     assert len(plan_model.plan) == 1
     assert plan_model.plan[0] == 1
 
 
-def test_add_duplicate_goal_to_plan(plan_model, goal_beatles, mocker): # change goal
+def test_add_duplicate_goal_to_plan(plan_model, goal_biceps, mocker): # change goal
     """Test error when adding a duplicate goal to the plan by ID."""
-    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", side_effect=[goal_beatles] * 2) # check side effect
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", side_effect=[goal_biceps] * 2) # check side effect
     plan_model.add_goal_to_plan(1)
     with pytest.raises(ValueError, match="goal with ID 1 already exists in the plan"):
         plan_model.add_goal_to_plan(1)
@@ -67,7 +59,7 @@ def test_add_duplicate_goal_to_plan(plan_model, goal_beatles, mocker): # change 
 
 def test_remove_goal_from_plan_by_goal_id(plan_model, mocker):
     """Test removing a goal from the plan by goal_id."""
-    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_beatles) # check return value
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_biceps) # check return value
 
     plan_model.plan = [1,2]
 
@@ -121,9 +113,9 @@ def test_clear_plan(plan_model):
 #     assert plan_model.plan[1] == 1, "Expected goal 1 to be in the second position"
 
 
-# def test_swap_goal_with_itself(plan_model, goal_beatles, mocker):
+# def test_swap_goal_with_itself(plan_model, goal_biceps, mocker):
 #     """Test swapping the position of a goal with itself raises an error."""
-#     mocker.patch("plan.models.plan_model.goals.get_goal_by_id", side_effect=[goal_beatles] * 2)
+#     mocker.patch("plan.models.plan_model.goals.get_goal_by_id", side_effect=[goal_biceps] * 2)
 #     plan_model.plan.append(1)
 
 #     with pytest.raises(ValueError, match="Cannot swap a goal with itself"):
@@ -155,15 +147,15 @@ def test_clear_plan(plan_model):
 ##################################################
 
 
-# def test_get_goal_by_track_number(plan_model, goal_beatles, mocker):
+# def test_get_goal_by_track_number(plan_model, goal_biceps, mocker):
 #     """Test successfully retrieving a goal from the plan by track number."""
-#     mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_beatles)
+#     mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_biceps)
 #     plan_model.plan.append(1)
 
 #     retrieved_goal = plan_model.get_goal_by_track_number(1)
 #     assert retrieved_goal.id == 1
 #     assert retrieved_goal.title == 'Come Together'
-#     assert retrieved_goal.artist == 'The Beatles'
+#     assert retrieved_goal.artist == 'The biceps'
 #     assert retrieved_goal.year == 1969
 #     assert retrieved_goal.duration == 259
 #     assert retrieved_goal.genre == 'Rock'
@@ -182,31 +174,27 @@ def test_get_all_goals(plan_model, sample_plan, mocker):
     assert all_goals[1].id == 2
 
 
-def test_get_goal_by_goal_id(plan_model, goal_beatles, mocker): # change goal name
+def test_get_goal_by_goal_id(plan_model, goal_biceps, mocker): # change goal name
     """Test successfully retrieving a goal from the plan by goal ID."""
-    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_beatles) # check return value
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_biceps) # check return value
     plan_model.plan.append(1)
 
     retrieved_goal = plan_model.get_goal_by_goal_id(1)
 
     assert retrieved_goal.id == 1 # change assertions based on parameters of goal
-    assert retrieved_goal.title == 'Come Together'
-    assert retrieved_goal.artist == 'The Beatles'
-    assert retrieved_goal.year == 1969
-    assert retrieved_goal.duration == 259
-    assert retrieved_goal.genre == 'Rock'
+    assert retrieved_goal.target == 'biceps'
 
 
-# def test_get_current_goal(plan_model, goal_beatles, mocker):
+# def test_get_current_goal(plan_model, goal_biceps, mocker):
 #     """Test successfully retrieving the current goal from the plan."""
-#     mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_beatles)
+#     mocker.patch("plan.models.plan_model.goals.get_goal_by_id", return_value=goal_biceps)
 
 #     plan_model.plan.append(1)
 
 #     current_goal = plan_model.get_current_goal()
 #     assert current_goal.id == 1
 #     assert current_goal.title == 'Come Together'
-#     assert current_goal.artist == 'The Beatles'
+#     assert current_goal.artist == 'The biceps'
 #     assert current_goal.year == 1969
 #     assert current_goal.duration == 259
 #     assert current_goal.genre == 'Rock'
@@ -275,9 +263,9 @@ def test_validate_goal_id_invalid_id(plan_model): # same as above
         plan_model.validate_goal_id("invalid")
 
 
-def test_validate_goal_id_not_in_plan(plan_model, goal_nirvana, mocker): # same as above
+def test_validate_goal_id_not_in_plan(plan_model, goal_pecs, mocker): # same as above
     """Test validate_goal_id raises error for goal ID not in the plan."""
-    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_nirvana) # check return value
+    mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_pecs) # check return value
     plan_model.plan.append(1)
     with pytest.raises(ValueError, match="goal with id 2 not found in plan"):
         plan_model.validate_goal_id(2)
