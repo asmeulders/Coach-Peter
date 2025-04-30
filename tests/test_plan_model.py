@@ -15,7 +15,10 @@ def plan_model():
 def goal_biceps(session): # change name
     """Fixture for a biceps goal."""
     goal = Goals(
-       target = "biceps"
+       target = "biceps",
+       goal_value = 40,
+       goal_progress = 35,
+       copmleted = False
     )
     session.add(goal)
     session.commit()
@@ -25,16 +28,19 @@ def goal_biceps(session): # change name
 def goal_pecs(session):  # change name
     """Fixture for a pecs goal."""
     goal = Goals(
-        target = "pectorals"
+        target = "pectorals",
+        goal_value = 200,
+        goal_progress = 225,
+        completed = True
     )
     session.add(goal)
     session.commit()
     return goal
 
 @pytest.fixture
-def sample_plan(goal_biceps, goal_pectorals): # make a sample playlist
+def sample_plan(goal_biceps, goal_pecs): # make a sample playlist
     """Fixture for a sample plan."""
-    return [goal_biceps, goal_pectorals]
+    return [goal_biceps, goal_pecs]
 
 ##################################################
 # Add / Remove Goal Management Test Cases
@@ -53,7 +59,7 @@ def test_add_duplicate_goal_to_plan(plan_model, goal_biceps, mocker): # change g
     """Test error when adding a duplicate goal to the plan by ID."""
     mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", side_effect=[goal_biceps] * 2) # check side effect
     plan_model.add_goal_to_plan(1)
-    with pytest.raises(ValueError, match="goal with ID 1 already exists in the plan"):
+    with pytest.raises(ValueError, match="Goal with ID 1 already exists in the plan"):
         plan_model.add_goal_to_plan(1)
 
 
@@ -83,7 +89,7 @@ def test_clear_plan(plan_model):
     plan_model.plan.append(1)
 
     plan_model.clear_plan()
-    assert len(plan_model.plan) == 0, "plan should be empty after clearing"
+    assert len(plan_model.plan) == 0, "Plan should be empty after clearing"
 
 
 # ##################################################
@@ -206,6 +212,12 @@ def test_get_plan_length(plan_model): # change to get number of goals?
     assert plan_model.get_plan_length() == 2, "Expected plan length to be 2"
 
 
+def test_get_plan_progress(plan_model, sample_plan):
+    """Test getting the percent completed goals in a plan."""
+    percentage = plan_model.get_plan_progress(sample_plan)
+    assert percentage == 0.500, "Expected plan progress to be 50% (0.500)"
+
+    
 # def test_get_plan_duration(plan_model, sample_plan, mocker):
 #     """Test getting the total duration of the plan."""
 #     mocker.patch("plan.models.plan_model.planModel._get_goal_from_cache_or_db", side_effect=sample_plan)
@@ -230,7 +242,7 @@ def test_check_if_empty_non_empty_plan(plan_model):
 def test_check_if_empty_empty_plan(plan_model):
     """Test check_if_empty raises error when plan is empty."""
     plan_model.clear_plan()
-    with pytest.raises(ValueError, match="plan is empty"):
+    with pytest.raises(ValueError, match="Plan is empty"):
         plan_model.check_if_empty()
 
 
@@ -267,7 +279,7 @@ def test_validate_goal_id_not_in_plan(plan_model, goal_pecs, mocker): # same as 
     """Test validate_goal_id raises error for goal ID not in the plan."""
     mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_pecs) # check return value
     plan_model.plan.append(1)
-    with pytest.raises(ValueError, match="goal with id 2 not found in plan"):
+    with pytest.raises(ValueError, match="Goal with id 2 not found in plan"):
         plan_model.validate_goal_id(2)
 
 

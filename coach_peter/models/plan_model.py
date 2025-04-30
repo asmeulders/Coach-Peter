@@ -157,7 +157,7 @@ class PlanModel:
 
 
     ##################################################
-    # plan Retrieval Functions
+    # Plan Retrieval Functions
     ##################################################
 
 
@@ -228,16 +228,39 @@ class PlanModel:
     #     logger.info("Retrieving the current goal being played")
     #     return self.get_goal_by_track_number(self.current_track_number)
 
-    # def get_plan_length(self) -> int:
-    #     """Returns the number of goals in the plan.
+    def get_plan_length(self) -> int:
+        """Returns the number of goals in the plan.
 
-    #     Returns:
-    #         int: The total number of goals in the plan.
+        Returns:
+            int: The total number of goals in the plan.
 
-    #     """
-    #     length = len(self.plan)
-    #     logger.info(f"Retrieving plan length: {length} goals")
-    #     return length
+        """
+        length = len(self.plan)
+        logger.info(f"Retrieving plan length: {length} goals")
+        return length
+    
+    def get_plan_progress(self) -> float:
+        """Returns percentage of the goals completed in the plan.
+
+        Returns:
+            float: The percentage of the goals completed in the plan.
+
+        Raises:
+            ValueError: If the plan is empty
+        """
+        self.check_if_empty()
+        completed: int = 0
+        length = len(self.plan)
+        logger.info(f"Retrieving number of completed goals")
+
+        for goal in self.plan:
+            if goal.completed:
+                completed += 1
+
+        
+        percentage: float = round(completed / length, 3)
+        logger.info(f"User has completed {percentage}% of their goals!")
+        return percentage
 
     # def get_plan_duration(self) -> int:
     #     """
@@ -477,14 +500,14 @@ class PlanModel:
             raise ValueError(f"Invalid goal id: {goal_id}")
 
         if check_in_plan and goal_id not in self.plan:
-            logger.error(f"goal with id {goal_id} not found in plan")
-            raise ValueError(f"goal with id {goal_id} not found in plan")
+            logger.error(f"Goal with id {goal_id} not found in plan")
+            raise ValueError(f"Goal with id {goal_id} not found in plan")
 
         try:
             self._get_goal_from_cache_or_db(goal_id)
         except Exception as e:
-            logger.error(f"goal with id {goal_id} not found in database: {e}")
-            raise ValueError(f"goal with id {goal_id} not found in database")
+            logger.error(f"Goal with id {goal_id} not found in database: {e}")
+            raise ValueError(f"Goal with id {goal_id} not found in database")
 
         return goal_id
 
@@ -521,5 +544,5 @@ class PlanModel:
 
         """
         if not self.plan:
-            logger.error("plan is empty")
-            raise ValueError("plan is empty")
+            logger.error("Plan is empty")
+            raise ValueError("Plan is empty")
