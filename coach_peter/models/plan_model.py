@@ -228,16 +228,16 @@ class PlanModel:
     #     logger.info("Retrieving the current goal being played")
     #     return self.get_goal_by_track_number(self.current_track_number)
 
-    # def get_plan_length(self) -> int:
-    #     """Returns the number of goals in the plan.
+    def get_plan_length(self) -> int:
+        """Returns the number of goals in the plan.
 
-    #     Returns:
-    #         int: The total number of goals in the plan.
+        Returns:
+            int: The total number of goals in the plan.
 
-    #     """
-    #     length = len(self.plan)
-    #     logger.info(f"Retrieving plan length: {length} goals")
-    #     return length
+        """
+        length = len(self.plan)
+        logger.info(f"Retrieving plan length: {length} goals")
+        return length
 
     # def get_plan_duration(self) -> int:
     #     """

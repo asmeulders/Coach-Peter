@@ -2,7 +2,7 @@ import pytest
 
 from app import create_app
 from config import TestConfig
-from playlist.db import db
+from coach_peter.db import db
 
 @pytest.fixture
 def app():

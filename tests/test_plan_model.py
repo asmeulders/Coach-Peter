@@ -32,9 +32,9 @@ def goal_pecs(session):  # change name
     return goal
 
 @pytest.fixture
-def sample_plan(goal_biceps, goal_pectorals): # make a sample playlist
+def sample_plan(goal_biceps, goal_pecs): # make a sample playlist
     """Fixture for a sample plan."""
-    return [goal_biceps, goal_pectorals]
+    return [goal_biceps, goal_pecs]
 
 ##################################################
 # Add / Remove Goal Management Test Cases

@@ -4,8 +4,8 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from coach_peter.utils.api_utils import fetch_recommendation
 
 # Double check if correct db
-from fitness.db import db
-from fitness.utils.logger import configure_logger
+from coach_peter.db import db
+from coach_peter.utils.logger import configure_logger
 # from fitness.utils.api_utils import get_random
 
 
