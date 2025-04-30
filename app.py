@@ -404,7 +404,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target.
 
         TODO Query Parameter:
-            - sort_by_target (bool, optional): If true, sort goals by play target.
+            - sort_by_completed (bool, optional): If true, sort goals by completion.
 
         Returns:
             JSON response containing the list of goals.
@@ -415,7 +415,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             # Extract query parameter for sorting by play count
-            sort_by_target = request.args.get('sort_by_target', 'false').lower() == 'true'
+            sort_by_target = request.args.get('sort_by_completed', 'false').lower() == 'true'
 
             app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_target={sort_by_target})")
 
@@ -1111,6 +1111,38 @@ def create_app(config_class=ProductionConfig) -> Flask:
             return make_response(jsonify({
                 "status": "success",
                 "goals": goals
+            }), 200)
+
+        except Exception as e:
+            app.logger.error(f"Failed to retrieve goals from plan: {e}")
+            return make_response(jsonify({
+                "status": "error",
+                "message": "An internal error occurred while retrieving the plan",
+                "details": str(e)
+            }), 500)
+        
+    
+    @app.route('/api/get-plan-progress', methods=['GET'])
+    @login_required
+    def get_plan_progress() -> Response:
+        """Retrieve progress of goals in the plan.
+
+        Returns:
+            JSON response containing the percentage of goals completed.
+
+        Raises:
+            500 error if there is an issue retrieving progress.
+
+        """
+        try:
+            app.logger.info("Received request to get progress of the plan.")
+
+            percentage = plan_model.get_plan_progress()
+
+            app.logger.info(f"Successfully retrieved percentage of goals completed in the plan.")
+            return make_response(jsonify({
+                "status": "success",
+                "percentage": percentage
             }), 200)
 
         except Exception as e:
