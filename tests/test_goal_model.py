@@ -1,35 +1,45 @@
 import pytest
 
-from playlist.models.song_model import Songs
-
+from coach_peter.models.goal_model import Goals
+#may need to do something with mock because of api call
 
 # --- Fixtures ---
 
 @pytest.fixture
-def song_beatles(session):
-    """Fixture for The Beatles - Hey Jude."""
-    song = Songs(artist="The Beatles", title="Hey Jude", year=1968, genre="Rock", duration=431)
-    session.add(song)
+def goal_biceps(session): 
+    """Fixture for a biceps goal."""
+    goal = Goals(
+       target = "biceps"
+    )
+    session.add(goal)
     session.commit()
-    return song
+    return goal
 
 @pytest.fixture
-def song_nirvana(session):
-    """Fixture for Nirvana - Smells Like Teen Spirit."""
-    song = Songs(artist="Nirvana", title="Smells Like Teen Spirit", year=1991, genre="Grunge", duration=301)
-    session.add(song)
+def goal_pecs(session):  # change name
+    """Fixture for a pecs goal."""
+    goal = Goals(
+        target = "pectorals"
+    )
+    session.add(goal)
     session.commit()
-    return song
+    return goal
 
 
-# --- Create Song ---
+################## TODO: change to goal ############
+@pytest.fixture
+def sample_goal(goal_biceps, goal_pecs): 
+    """Fixture for a sample plan."""
+    return [goal_biceps, goal_pecs]
 
-def test_create_song(session):
-    """Test creating a new song."""
-    Songs.create_song("Queen", "Bohemian Rhapsody", 1975, "Rock", 354)
-    song = session.query(Songs).filter_by(title="Bohemian Rhapsody").first()
-    assert song is not None
-    assert song.artist == "Queen"
+# --- Create Goal ---
+
+def test_create_goal(session):
+    """Test creating a new goal."""
+    Goals.create_goal("core")
+    song = session.query(Goals).filter_by(target="core").first()
+    assert goal is not None
+    assert goal.artist == "Queen" #double check if this is necessary 
 
 
 def test_create_duplicate_song(session, song_beatles):
@@ -45,6 +55,7 @@ def test_create_duplicate_song(session, song_beatles):
     ("Valid Artist", "Valid Title", 2000, "", 180),
     ("Valid Artist", "Valid Title", 2000, "Pop", 0),
 ])
+
 def test_create_song_invalid_data(artist, title, year, genre, duration):
     """Test validation errors when creating a song."""
     with pytest.raises(ValueError):
@@ -64,38 +75,33 @@ def test_get_song_by_id_not_found(app):
         Songs.get_song_by_id(999)
 
 
-def test_get_song_by_compound_key(song_nirvana):
-    """Test fetching a song by compound key."""
-    song = Songs.get_song_by_compound_key("Nirvana", "Smells Like Teen Spirit", 1991)
-    assert song.genre == "Grunge"
-
-def test_get_song_by_compound_key_not_found(app):
-    """Test error when fetching nonexistent song by compound key."""
-    with pytest.raises(ValueError, match="not found"):
-        Songs.get_song_by_compound_key("Ghost", "Invisible Song", 2024)
-
-
 # --- Delete Song ---
 
-def test_delete_song_by_id(session, song_beatles):
-    """Test deleting a song by ID."""
-    Songs.delete_song(song_beatles.id)
-    assert session.query(Songs).get(song_beatles.id) is None
+def test_delete_goal_by_id(session, goal_biceps):
+    """Test deleting a goal by ID."""
+    Goals.delete_goal(goal_biceps.id)
+    assert session.query(Goals).get(goal_biceps.id) is None
 
-def test_delete_song_not_found(app):
-    """Test deleting a non-existent song by ID."""
+# delete by target 
+def test_delete_goal_by_target(session, goal_biceps):
+    """Test deleting a goal by target."""
+    Goals.delete_goal(goal_biceps.target)
+    assert session.query(Goals).get(goal_biceps.target) is None
+
+def test_delete_goal_not_found(app):
+    """Test deleting a non-existent goal by ID."""
     with pytest.raises(ValueError, match="not found"):
-        Songs.delete_song(999)
+        Goals.delete_goal(999)
 
 
 # --- Play Count ---
 
-def test_update_play_count(session, song_nirvana):
-    """Test incrementing play count."""
-    assert song_nirvana.play_count == 0
-    song_nirvana.update_play_count()
-    session.refresh(song_nirvana)
-    assert song_nirvana.play_count == 1
+# def test_update_play_count(session, song_nirvana):
+#     """Test incrementing play count."""
+#     assert song_nirvana.play_count == 0
+#     song_nirvana.update_play_count()
+#     session.refresh(song_nirvana)
+#     assert song_nirvana.play_count == 1
 
 
 # --- Get All Songs ---
@@ -105,13 +111,13 @@ def test_get_all_songs(session, song_beatles, song_nirvana):
     songs = Songs.get_all_songs()
     assert len(songs) == 2
 
-def test_get_all_songs_sorted(session, song_beatles, song_nirvana):
-    """Test retrieving songs sorted by play count."""
-    song_nirvana.play_count = 5
-    song_beatles.play_count = 3
-    session.commit()
-    sorted_songs = Songs.get_all_songs(sort_by_play_count=True)
-    assert sorted_songs[0]["title"] == "Smells Like Teen Spirit"
+# def test_get_all_songs_sorted(session, song_beatles, song_nirvana):
+#     """Test retrieving songs sorted by play count."""
+#     song_nirvana.play_count = 5
+#     song_beatles.play_count = 3
+#     session.commit()
+#     sorted_songs = Songs.get_all_songs(sort_by_play_count=True)
+#     assert sorted_songs[0]["title"] == "Smells Like Teen Spirit"
 
 
 # --- Random Song ---
