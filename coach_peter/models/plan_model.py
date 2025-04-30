@@ -157,7 +157,7 @@ class PlanModel:
 
 
     ##################################################
-    # plan Retrieval Functions
+    # Plan Retrieval Functions
     ##################################################
 
 
@@ -238,6 +238,29 @@ class PlanModel:
         length = len(self.plan)
         logger.info(f"Retrieving plan length: {length} goals")
         return length
+    
+    def get_plan_progress(self) -> float:
+        """Returns percentage of the goals completed in the plan.
+
+        Returns:
+            float: The percentage of the goals completed in the plan.
+
+        Raises:
+            ValueError: If the plan is empty
+        """
+        self.check_if_empty()
+        completed: int = 0
+        length = len(self.plan)
+        logger.info(f"Retrieving number of completed goals")
+
+        for goal in self.plan:
+            if goal.completed:
+                completed += 1
+
+        
+        percentage: float = round(completed / length, 3)
+        logger.info(f"User has completed {percentage}% of their goals!")
+        return percentage
 
     # def get_plan_duration(self) -> int:
     #     """
