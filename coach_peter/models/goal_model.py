@@ -27,7 +27,9 @@ class Goals(db.Model):
     # Users can choose which types of goals they want 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     target = db.Column(db.String, nullable=False)
-    # recurring = db.Column(db.String, nullable=True)
+    goal_value = db.Column(db.Integer, nullable=False)
+    goal_progress = db.Column(db.Float, nullable=True, default=0)
+    completed = db.Column(db.Boolean, nullable=False)
     # play_count = db.Column(db.Integer, nullable=False, default=0)
 
     def validate(self) -> None:
@@ -41,8 +43,17 @@ class Goals(db.Model):
         # Checks only if field is provided (because it is nullable) and if provided, must be a non-empty string
         # if self.recurring is not None and (not isinstance(self.recurring, str) or not self.recurring.strip()):
         #     raise ValueError("Recurring goal must be a non-empty string if provided.")
-        if not self.target or (not isinstance(self.recurring, str) or not self.target.strip()):
-            raise ValueError("")
+        
+        #TODO: Double check if this is checking if field is required and change target if so 
+        if not self.target or (not isinstance(self.target, str) or not self.target.strip()):
+            raise ValueError("Target must be a non-empty string.")
+        if not self.goal_value or not isinstance(self.goal_value, int):
+            raise ValueError("Goal value must be a valid integer.")
+        if not self.goal_progress or (not isinstance(self.goal_progress, float) or not self.goal_progress.strip()):
+            raise ValueError("Goal progress must be a valid float.")
+        if not self.completed or not isinstance(self.completed, bool):
+            raise ValueError("Completed must be either true or false.")
+        
         # does not allow an empty goal creation
         # if not any([self.nutritional, self.physical, self.recurring, self.one_time, self.upper_body, self.core, self.lower_body]):
         #     raise ValueError("At least one goal field must be provided.")
@@ -56,17 +67,20 @@ class Goals(db.Model):
         # if not isinstance(self.duration, int) or self.duration <= 0:
         #     raise ValueError("Duration must be a positive integer.")
 
+    #TODO: Do i need to include nullable fields in this?
     @classmethod
-    def create_goal(cls, target: str, ) -> None:
+    def create_goal(cls, target: str, goal_value: int, completed: bool) -> None:
         """
         Creates a new goal in the goals table using SQLAlchemy.
 
         Args:
             target (str): A target muscle group the user wants to work on.
+            goal_value (int): A value the user wants to reach for a specific goal.
+            completed (bool): If the user has completed the specific goal or not.
 
 
         Raises:
-            ValueError: If any field is invalid or if a song with the same compound key already exists.
+            ValueError: If any field is invalid or if a goal with the same compound key already exists. 
             SQLAlchemyError: For any other database-related issues.
         """
         logger.info(f"Received request to create goal.")
@@ -74,6 +88,8 @@ class Goals(db.Model):
         try:
             goal = Goals(
                 target=target.strip() if target else None,
+                goal_value=goal_value,
+                completed=completed
             )
             goal.validate()
         except ValueError as e:
@@ -83,7 +99,7 @@ class Goals(db.Model):
         try:
             db.session.add(goal)
             db.session.commit()
-            logger.info(f"Goal successfully added with target(s): {target}.")
+            logger.info(f"Goal successfully added with target(s): {target}, goal value: {goal_value}, and completion status: {completed}.")
 
         # Duplicate
         # except IntegrityError:
@@ -128,6 +144,95 @@ class Goals(db.Model):
             logger.error(f"Database error while deleting goal with ID {goal_id}: {e}")
             db.session.rollback()
             raise
+
+    @classmethod
+    def delete_goal_by_target(cls, target: str) -> None:
+        """
+        Permanently deletes a goal by target.
+
+        Args:
+            target (str): A target muscle group the user wants to work on.
+
+        Raises:
+            ValueError: If the goal with the given target does not exist.
+            SQLAlchemyError: For any database-related issues.
+        """
+        logger.info(f"Received request to delete goal with ID {target}")
+
+        try:
+            goal = cls.query.get(target)
+            if not goal:
+                logger.warning(f"Attempted to delete non-existent goal with target {target}")
+                raise ValueError(f"Goal with target {target} not found")
+
+            db.session.delete(goal)
+            db.session.commit()
+            logger.info(f"Successfully deleted goal with target {target}")
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while deleting goal with target {target}: {e}")
+            db.session.rollback()
+            raise
+
+    @classmethod
+    def delete_goal_by_goal_value(cls, goal_value: int) -> None:
+        """
+        Permanently deletes a goal by the goal value.
+
+        Args:
+            goal_value (int): A value the user wants to reach for a specific goal.
+
+        Raises:
+            ValueError: If the goal with the given goal value does not exist.
+            SQLAlchemyError: For any database-related issues.
+        """
+        logger.info(f"Received request to delete goal with goal value {goal_value}")
+
+        try:
+            goal = cls.query.get(goal_value)
+            if not goal:
+                logger.warning(f"Attempted to delete non-existent goal with target {goal_value}")
+                raise ValueError(f"Goal with target {goal_value} not found")
+
+            db.session.delete(goal)
+            db.session.commit()
+            logger.info(f"Successfully deleted goal with target {goal_value}")
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while deleting goal with target {goal_value}: {e}")
+            db.session.rollback()
+            raise
+    
+    @classmethod
+    def delete_goal_by_completed(cls, completed: bool) -> None:
+        """
+        Permanently deletes a goal by the completion status.
+
+        Args:
+            completed (bool): The completion status of that goal 
+
+        Raises:
+            ValueError: If the goal with the given completion status does not exist.
+            SQLAlchemyError: For any database-related issues.
+        """
+        #TODO: Tailor this to true and false 
+        logger.info(f"Received request to delete goal with completion status {completed}")
+
+        try:
+            goal = cls.query.get(goal_value)
+            if not goal:
+                logger.warning(f"Attempted to delete non-existent goal with target {goal_value}")
+                raise ValueError(f"Goal with target {goal_value} not found")
+
+            db.session.delete(goal)
+            db.session.commit()
+            logger.info(f"Successfully deleted goal with target {goal_value}")
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while deleting goal with target {goal_value}: {e}")
+            db.session.rollback()
+            raise
+    
 
 ###############################################
 # Get Goals 
