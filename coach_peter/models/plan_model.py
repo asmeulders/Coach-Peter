@@ -477,14 +477,14 @@ class PlanModel:
             raise ValueError(f"Invalid goal id: {goal_id}")
 
         if check_in_plan and goal_id not in self.plan:
-            logger.error(f"goal with id {goal_id} not found in plan")
-            raise ValueError(f"goal with id {goal_id} not found in plan")
+            logger.error(f"Goal with id {goal_id} not found in plan")
+            raise ValueError(f"Goal with id {goal_id} not found in plan")
 
         try:
             self._get_goal_from_cache_or_db(goal_id)
         except Exception as e:
-            logger.error(f"goal with id {goal_id} not found in database: {e}")
-            raise ValueError(f"goal with id {goal_id} not found in database")
+            logger.error(f"Goal with id {goal_id} not found in database: {e}")
+            raise ValueError(f"Goal with id {goal_id} not found in database")
 
         return goal_id
 
@@ -521,5 +521,5 @@ class PlanModel:
 
         """
         if not self.plan:
-            logger.error("plan is empty")
-            raise ValueError("plan is empty")
+            logger.error("Plan is empty")
+            raise ValueError("Plan is empty")

@@ -83,7 +83,7 @@ def test_clear_plan(plan_model):
     plan_model.plan.append(1)
 
     plan_model.clear_plan()
-    assert len(plan_model.plan) == 0, "plan should be empty after clearing"
+    assert len(plan_model.plan) == 0, "Plan should be empty after clearing"
 
 
 # ##################################################
@@ -230,7 +230,7 @@ def test_check_if_empty_non_empty_plan(plan_model):
 def test_check_if_empty_empty_plan(plan_model):
     """Test check_if_empty raises error when plan is empty."""
     plan_model.clear_plan()
-    with pytest.raises(ValueError, match="plan is empty"):
+    with pytest.raises(ValueError, match="Plan is empty"):
         plan_model.check_if_empty()
 
 
@@ -267,7 +267,7 @@ def test_validate_goal_id_not_in_plan(plan_model, goal_pecs, mocker): # same as 
     """Test validate_goal_id raises error for goal ID not in the plan."""
     mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", return_value=goal_pecs) # check return value
     plan_model.plan.append(1)
-    with pytest.raises(ValueError, match="goal with id 2 not found in plan"):
+    with pytest.raises(ValueError, match="Goal with id 2 not found in plan"):
         plan_model.validate_goal_id(2)
 
 
