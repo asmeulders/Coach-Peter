@@ -1,6 +1,7 @@
 import logging
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from coach_peter.utils.api_utils import fetch_recommendation
 
 # Double check if correct db
 from fitness.db import db
@@ -170,7 +171,7 @@ class Goals(db.Model):
         Retrieves all goals matching a specific target field.
 
         Args:
-            nutrititargetonal (str): The target to search for.
+            target (str): The target to search for.
 
         Returns:
             list[Goals]: A list of goal instances matching the target.
@@ -193,6 +194,36 @@ class Goals(db.Model):
 
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving goals by target '{target}': {e}")
+            raise
+
+# Recommendations
+    @classmethod
+    def get_exercise_recommendations(cls, goal_id: int) -> list[dict]:
+        """
+        Gets exercise recommendations from ExerciseDB based on a goal's target.
+
+        Args:
+            goal_id (int): The ID of the goal.
+
+        Returns:
+            list[dict]: A list of recommended exercises.
+
+        Raises:
+            ValueError: If the goal is not found.
+            RuntimeError: If the external API call fails.
+        """
+        logger.info(f"Fetching exercise recommendations for goal ID {goal_id}")
+
+        goal = cls.query.get(goal_id)
+        if not goal:
+            logger.warning(f"Goal with ID {goal_id} not found.")
+            raise ValueError(f"Goal with ID {goal_id} not found.")
+
+        try:
+            exercises = fetch_recommendation(goal.target)
+            return exercises
+        except RuntimeError as e:
+            logger.error(f"Failed to fetch exercise recommendations: {e}")
             raise
 
 #Returns all goals with wanted physical value 
