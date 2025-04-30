@@ -1,4 +1,8 @@
 import logging
+import json from sqlalchemy import Text
+
+
+
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from coach_peter.utils.api_utils import fetch_recommendation
@@ -30,6 +34,7 @@ class Goals(db.Model):
     goal_value = db.Column(db.Integer, nullable=False)
     goal_progress = db.Column(db.Float, nullable=True, default=0)
     completed = db.Column(db.Boolean, nullable=False)
+    progress_notes = db.Column(Text, nullable=False, default="[]")
     # play_count = db.Column(db.Integer, nullable=False, default=0)
 
     def validate(self) -> None:
@@ -45,14 +50,24 @@ class Goals(db.Model):
         #     raise ValueError("Recurring goal must be a non-empty string if provided.")
         
         #TODO: Double check if this is checking if field is required and change target if so 
-        if not self.target or (not isinstance(self.target, str) or not self.target.strip()):
-            raise ValueError("Target must be a non-empty string.")
+        if not self.target or not isinstance(self.target, str):
+            raise ValueError("Target must be a non-empty string")
         if not self.goal_value or not isinstance(self.goal_value, int):
             raise ValueError("Goal value must be a valid integer.")
         if not self.goal_progress or (not isinstance(self.goal_progress, float) or not self.goal_progress.strip()):
             raise ValueError("Goal progress must be a valid float.")
         if not self.completed or not isinstance(self.completed, bool):
             raise ValueError("Completed must be either true or false.")
+        if not self.progress_notes or not isinstance(self.progress_notes, str):
+            raise ValueError("Progress notes must be a non-empty stringified JSON list.")
+        #progress
+        try:
+            notes = json.loads(self.progress_notes)
+        if not isinstance(notes, list):
+            raise ValueError("Progress notes must be a JSON-formatted list.")
+        except (json.JSONDecodeError, TypeError):
+            raise ValueError("Progress notes must be a valid JSON-formatted string representing a list.")
+
         
         # does not allow an empty goal creation
         # if not any([self.nutritional, self.physical, self.recurring, self.one_time, self.upper_body, self.core, self.lower_body]):
@@ -69,7 +84,7 @@ class Goals(db.Model):
 
     #TODO: Do i need to include nullable fields in this?
     @classmethod
-    def create_goal(cls, target: str, goal_value: int, completed: bool) -> None:
+    def create_goal(cls, target: str, goal_value: int, goal_progress: Optional[float] = None, completed: bool) -> None:
         """
         Creates a new goal in the goals table using SQLAlchemy.
 
@@ -89,7 +104,9 @@ class Goals(db.Model):
             goal = Goals(
                 target=target.strip() if target else None,
                 goal_value=goal_value,
+                goal_progress=goal_progress,
                 completed=completed
+                progress_notes="[]"
             )
             goal.validate()
         except ValueError as e:
@@ -99,7 +116,7 @@ class Goals(db.Model):
         try:
             db.session.add(goal)
             db.session.commit()
-            logger.info(f"Goal successfully added with target(s): {target}, goal value: {goal_value}, and completion status: {completed}.")
+            logger.info(f"Goal successfully added with target(s): {target}, goal value: {goal_value}, goal progress: {goal_progress}, and completion status: {completed}.")
 
         # Duplicate
         # except IntegrityError:
@@ -191,15 +208,15 @@ class Goals(db.Model):
         try:
             goal = cls.query.get(goal_value)
             if not goal:
-                logger.warning(f"Attempted to delete non-existent goal with target {goal_value}")
-                raise ValueError(f"Goal with target {goal_value} not found")
+                logger.warning(f"Attempted to delete non-existent goal with goal value {goal_value}")
+                raise ValueError(f"Goal with goal value {goal_value} not found")
 
             db.session.delete(goal)
             db.session.commit()
-            logger.info(f"Successfully deleted goal with target {goal_value}")
+            logger.info(f"Successfully deleted goal with goal value {goal_value}")
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error while deleting goal with target {goal_value}: {e}")
+            logger.error(f"Database error while deleting goal with goal value {goal_value}: {e}")
             db.session.rollback()
             raise
     
@@ -219,20 +236,82 @@ class Goals(db.Model):
         logger.info(f"Received request to delete goal with completion status {completed}")
 
         try:
-            goal = cls.query.get(goal_value)
+            goal = cls.query.get(completed)
             if not goal:
-                logger.warning(f"Attempted to delete non-existent goal with target {goal_value}")
-                raise ValueError(f"Goal with target {goal_value} not found")
+                logger.warning(f"Attempted to delete non-existent goal with completion {completed}")
+                raise ValueError(f"Goal with completion {completed} not found")
 
             db.session.delete(goal)
             db.session.commit()
-            logger.info(f"Successfully deleted goal with target {goal_value}")
+            logger.info(f"Successfully deleted goal with completion {completed}")
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error while deleting goal with target {goal_value}: {e}")
+            logger.error(f"Database error while deleting goal with completion {completed}: {e}")
             db.session.rollback()
             raise
     
+###############################################
+# Progress Notes 
+###############################################
+    @classmethod
+    def log_workout_session(self, amount: float, exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
+        """
+        Logs a workout session with progress and updates status.
+
+        Args:
+            amount (float): The amount to add to goal progress.
+            exercise_type (str): The type of exercise performed (e.g., "Running").
+            duration (int): The duration of the workout in minutes.
+            intensity (str): The intensity of the workout (e.g., "Low", "Moderate", "High").
+            note (str): An optional personal note about the session.
+
+        Raises:
+            ValueError: If the amount is not positive.
+            SQLAlchemyError: For any database-related issues.
+
+        Returns:
+            str: A message indicating progress update or completion.
+        """
+        if amount <= 0:
+            raise ValueError("Progress amount must be positive.")
+
+        if self.goal_progress is None:
+            self.goal_progress = 0.0
+
+        self.goal_progress += amount
+
+        workout_note = f"{exercise_type} - {duration} min - {intensity}"
+        if note:
+            workout_note += f" | Note: {note}"
+
+        self.add_progress_note(workout_note)
+
+        percent = (self.goal_progress / self.goal_value) * 100
+
+        if self.goal_progress >= self.goal_value:
+            self.completed = True
+            message = f"Goal completed! Total progress: {percent:.1f}%"
+        else:
+            message = f"Workout logged. Progress: {percent:.1f}% complete."
+
+        db.session.commit()
+        return message
+    
+
+    # Helper methods
+    def get_progress_notes(self) -> list[str]:
+        """Returns progress notes as a list of strings."""
+        try:
+            return json.loads(self.progress_notes or "[]")
+        except (TypeError, json.JSONDecodeError):
+            return []
+
+    def add_progress_note(self, note: str) -> None:
+        """Appends a note to the progress_notes list."""
+        notes = self.get_progress_notes()
+        notes.append(note)
+        self.progress_notes = json.dumps(notes)
+
 
 ###############################################
 # Get Goals 
@@ -269,7 +348,6 @@ class Goals(db.Model):
             logger.error(f"Database error while retrieving goal by ID {goal_id}: {e}")
             raise
 
-#Returns all goals with wanted nutritional value 
     @classmethod
     def get_goals_by_target(cls, target: str) -> list["Goals"]:
         """
@@ -299,6 +377,68 @@ class Goals(db.Model):
 
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving goals by target '{target}': {e}")
+            raise
+
+    @classmethod
+    def get_goals_by_goal_value(cls, goal_value: int) -> list["Goals"]:
+        """
+        Retrieves all goals matching a specific goal value.
+
+        Args:
+            goal_value (int): The goal value to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the goal value.
+
+        Raises:
+            ValueError: If no goals with the given goal value are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with goal value '{goal_value}'")
+
+        try:
+            goals = cls.query.filter_by(goal_value=goal_value).all()
+
+            if not goals:
+                logger.info(f"No goals found with goal value '{goal_value}'")
+                raise ValueError(f"No goals found with goal value '{goal_value}'")
+
+            logger.info(f"Successfully retrieved {len(goal_value)} goal(s) with goal value '{goal_value}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by goal value '{goal_value}': {e}")
+            raise
+
+    @classmethod
+    def get_goals_by_completed(cls, completed: bool) -> list["Goals"]:
+        """
+        Retrieves all goals matching completion status.
+
+        Args:
+            completed (bool): The completion status to search for.
+
+        Returns:
+            list[Goals]: A list of goal instances matching the completion status.
+
+        Raises:
+            ValueError: If no goals with the given completion status are found.
+            SQLAlchemyError: If a database error occurs.
+        """
+        logger.info(f"Attempting to retrieve all goals with completion status '{completed}'")
+
+        try:
+            goals = cls.query.filter_by(completed=completed).all()
+
+            if not goals:
+                logger.info(f"No goals found with completion status '{completed}'")
+                raise ValueError(f"No goals found with completion status '{completed}'")
+
+            logger.info(f"Successfully retrieved {len(completed)} goal(s) with completion status '{completed}'")
+            return goals
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving goals by completion status '{completed}': {e}")
             raise
 
 # Recommendations
@@ -598,20 +738,30 @@ class Goals(db.Model):
 ##########################################
 # Update Goals
 ##########################################
-    @classmethod
-    def update_goal(cls, goal_id: int, target: str = None) -> "Goals":
+   @classmethod
+    def update_goal(
+        cls,
+        goal_id: int,
+        target: str = None,
+        goal_value: int = None,
+        goal_progress: float = None,
+        completed: bool = None
+    ) -> "Goals":
         """
         Updates a goal in the database by its ID.
 
         Args:
             goal_id (int): The ID of the goal to update.
             target (str, optional): The new target value.
+            goal_value (int, optional): The new goal value.
+            goal_progress (float, optional): The new goal progress value.
+            completed (bool, optional): The new completion status.
 
         Returns:
             Goals: The updated goal instance.
 
         Raises:
-            ValueError: If the goal with the given ID does not exist.
+            ValueError: If the goal with the given ID does not exist or inputs are invalid.
             SQLAlchemyError: If a database error occurs.
         """
         logger.info(f"Attempting to update goal with ID {goal_id}")
@@ -624,13 +774,26 @@ class Goals(db.Model):
                 logger.warning(f"Goal with ID {goal_id} not found")
                 raise ValueError(f"Goal with ID {goal_id} not found")
 
-            # Update fields only if provided (None will leave them unchanged)
+            # Update only provided fields
             if target is not None:
-                goal.target = target
+                goal.target = target.strip() if isinstance(target, str) else target
 
-            # Commit the changes
+            if goal_value is not None:
+                if not isinstance(goal_value, int):
+                    raise ValueError("goal_value must be an integer.")
+                goal.goal_value = goal_value
+
+            if goal_progress is not None:
+                if not isinstance(goal_progress, float):
+                    raise ValueError("goal_progress must be a float.")
+                goal.goal_progress = goal_progress
+
+            if completed is not None:
+                if not isinstance(completed, bool):
+                    raise ValueError("completed must be a boolean.")
+                goal.completed = completed
+
             db.session.commit()
-
             logger.info(f"Successfully updated goal with ID {goal_id}")
             return goal
 
@@ -638,6 +801,40 @@ class Goals(db.Model):
             logger.error(f"Database error while updating goal with ID {goal_id}: {e}")
             db.session.rollback()
             raise
+
+    @classmethod
+    def log_progress(self, amount: float) -> str:
+        """
+        Logs workout progress toward a goal, updates completion status, and calculates percentage progress.
+
+        Args:
+            amount (float): The amount of progress to add.
+
+        Returns:
+            str: A message indicating the current progress percentage or goal completion.
+
+        Raises:
+            ValueError: If the amount is invalid or negative.
+        """
+        if amount <= 0:
+            raise ValueError("Progress amount must be positive.")
+
+        if self.goal_progress is None:
+            self.goal_progress = 0.0
+
+        self.goal_progress += amount
+
+        progress_percent = (self.goal_progress / self.goal_value) * 100
+
+        if self.goal_progress >= self.goal_value:
+            self.completed = True
+            message = f"Goal completed! Progress: {progress_percent:.1f}%"
+        else:
+            #self.completed = False
+            message = f"Progress updated: {progress_percent:.1f}% complete."
+
+        db.session.commit()
+        return message
 
 
     # @classmethod
