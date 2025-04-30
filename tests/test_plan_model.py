@@ -53,7 +53,7 @@ def test_add_duplicate_goal_to_plan(plan_model, goal_biceps, mocker): # change g
     """Test error when adding a duplicate goal to the plan by ID."""
     mocker.patch("coach_peter.models.plan_model.Goals.get_goal_by_id", side_effect=[goal_biceps] * 2) # check side effect
     plan_model.add_goal_to_plan(1)
-    with pytest.raises(ValueError, match="goal with ID 1 already exists in the plan"):
+    with pytest.raises(ValueError, match="Goal with ID 1 already exists in the plan"):
         plan_model.add_goal_to_plan(1)
 
 

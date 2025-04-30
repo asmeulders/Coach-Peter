@@ -1,3 +1,4 @@
 # ignore zone identifiers
 *Zone.Identifier
 .env
+meal_max_venv
