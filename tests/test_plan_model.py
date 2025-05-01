@@ -18,7 +18,8 @@ def goal_biceps(session): # change name
        target = "biceps",
        goal_value = 40,
        goal_progress = 35,
-       copmleted = False
+       completed = False,
+       progress_notes='[]'
     )
     session.add(goal)
     session.commit()
@@ -31,7 +32,8 @@ def goal_pecs(session):  # change name
         target = "pectorals",
         goal_value = 200,
         goal_progress = 225,
-        completed = True
+        completed = True,
+        progress_notes='[]'
     )
     session.add(goal)
     session.commit()
@@ -217,7 +219,7 @@ def test_get_plan_progress(plan_model, sample_plan):
     percentage = plan_model.get_plan_progress(sample_plan)
     assert percentage == 0.500, "Expected plan progress to be 50% (0.500)"
 
-    
+
 # def test_get_plan_duration(plan_model, sample_plan, mocker):
 #     """Test getting the total duration of the plan."""
 #     mocker.patch("plan.models.plan_model.planModel._get_goal_from_cache_or_db", side_effect=sample_plan)
