@@ -509,6 +509,66 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 "details": str(e)
             }), 500)
 
+    @app.route('/api/goals/by-target/<string:target>', methods=['GET'])
+    @login_required
+    def get_goals_by_target(target: str) -> Response:
+        """Route to retrieve all goals by target.
+
+        Path Parameter:
+            - target (str): The target muscle group.
+
+        Returns:
+            JSON response with a list of goals that match the target.
+
+        Raises:
+            400 error if no matching goals are found.
+            500 error if there is an issue retrieving the goals.
+        """
+        try:
+            app.logger.info(f"Request to retrieve goals by target: {target}")
+            goals = Goals.get_goals_by_target(target)
+            return make_response(jsonify({
+                "status": "success",
+                "goals": [g.id for g in goals]  # Optional: convert to full dict if needed
+            }), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal retrieval failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error retrieving goals by target: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+    @app.route('/api/goals/by-completed/<completed>', methods=['GET'])
+    @login_required
+    def get_goals_by_completed(completed: str) -> Response:
+        """Route to retrieve all goals by completion status.
+
+        Path Parameter:
+            - completed (str): Either 'true' or 'false'.
+
+        Returns:
+            JSON response with a list of matching goals.
+
+        Raises:
+            400 error for invalid boolean input or missing data.
+            500 error for unexpected database issues.
+        """
+        try:
+            app.logger.info(f"Request to retrieve goals by completion status: {completed}")
+            status = completed.lower() == 'true'
+            goals = Goals.get_goals_by_completed(status)
+            return make_response(jsonify({
+                "status": "success",
+                "goals": [g.id for g in goals]
+            }), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal retrieval failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error retrieving completed goals: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+
 
     # @app.route('/api/get-goal-from-catalog-by-compound-key', methods=['GET']) TODO by target? but thats above so we should be fine
     # @login_required
