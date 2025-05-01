@@ -7,20 +7,20 @@ def run_smoketest():
     password = "test"
 
 
-    song_beatles = {
-        "artist": "The Beatles",
-        "title": "Come Together",
-        "year": 1969,
-        "genre": "Rock",
-        "duration": 259
+    goal_biceps = {
+        "target": "biceps",
+        "goal_value": 40,
+        "goal_progress": 35,
+        "completed": False,
+        "progress_notes": "[]"
     }
 
-    song_nirvana = {
-        "artist": "Nirvana",
-        "title": "Smells Like Teen Spirit",
-        "year": 1991,
-        "genre": "Grunge",
-        "duration": 301
+    goal_pecs = {
+        "target": "pectorals",
+        "goal_value": 200,
+        "goal_progress": 225,
+        "completed": True,
+        "progress_ntoes": "[]"
     }
 
     health_response = requests.get(f"{base_url}/health")
@@ -32,10 +32,10 @@ def run_smoketest():
     assert delete_user_response.json()["status"] == "success"
     print("Reset users successful")
 
-    delete_song_response = requests.delete(f"{base_url}/reset-songs")
-    assert delete_song_response.status_code == 200
-    assert delete_song_response.json()["status"] == "success"
-    print("Reset song successful")
+    delete_goal_response = requests.delete(f"{base_url}/reset-goals")
+    assert delete_goal_response.status_code == 200
+    assert delete_goal_response.json()["status"] == "success"
+    print("Reset goal successful")
 
     create_user_response = requests.put(f"{base_url}/create-user", json={
         "username": username,
@@ -56,9 +56,9 @@ def run_smoketest():
     assert login_resp.json()["status"] == "success"
     print("Login successful")
 
-    create_song_resp = session.post(f"{base_url}/create-song", json=song_beatles)
-    assert create_song_resp.status_code == 201
-    assert create_song_resp.json()["status"] == "success"
+    create_goal_resp = session.post(f"{base_url}/create-goal", json=goal_biceps)
+    assert create_goal_resp.status_code == 201
+    assert create_goal_resp.json()["status"] == "success"
     print("Boxer creation successful")
 
     # Change password
@@ -78,10 +78,10 @@ def run_smoketest():
     assert login_resp.json()["status"] == "success"
     print("Login with new password successful")
 
-    create_boxer_resp = session.post(f"{base_url}/create-song", json=song_nirvana)
+    create_boxer_resp = session.post(f"{base_url}/create-goal", json=goal_pecs)
     assert create_boxer_resp.status_code == 201
     assert create_boxer_resp.json()["status"] == "success"
-    print("Song creation successful")
+    print("goal creation successful")
 
     # Log out
     logout_resp = session.post(f"{base_url}/logout")
@@ -89,11 +89,11 @@ def run_smoketest():
     assert logout_resp.json()["status"] == "success"
     print("Logout successful")
 
-    create_boxer_logged_out_resp = session.post(f"{base_url}/create-song", json=song_nirvana)
+    create_boxer_logged_out_resp = session.post(f"{base_url}/create-goal", json=goal_pecs)
     # This should fail because we are logged out
     assert create_boxer_logged_out_resp.status_code == 401
     assert create_boxer_logged_out_resp.json()["status"] == "error"
-    print("Song creation failed as expected")
+    print("goal creation failed as expected")
 
 if __name__ == "__main__":
     run_smoketest()

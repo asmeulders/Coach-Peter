@@ -296,10 +296,13 @@ def create_app(config_class=ProductionConfig) -> Flask:
     @app.route('/api/create-goal', methods=['POST'])
     @login_required
     def add_goal() -> Response:
-        """Route to add a new goal to the plan.
+        """Route to create a new goal.
 
         Expected JSON Input:
             - target (str): The goal's target muscle group.
+            - goal_value (int): The goal's target to reach.
+            - goal_progress (float): The current progress towards the goal.
+            - completed (bool): Boolean for if the goal is completed.
 
         Returns:
             JSON response indicating the success of the goal addition.
@@ -314,7 +317,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         try:
             data = request.get_json()
 
-            required_fields = ["target"]
+            required_fields = ["target", "goal_value", "goal_progress", "completed"]
             missing_fields = [field for field in required_fields if field not in data]
 
             if missing_fields:
@@ -325,6 +328,9 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 }), 400)
 
             target = data["target"]
+            goal_value = data["goal_value"]
+            goal_progress = data["goal_progress"]
+            completed = data["completed"]
 
             if (
                 not isinstance(target, str)
@@ -334,14 +340,41 @@ def create_app(config_class=ProductionConfig) -> Flask:
                     "status": "error",
                     "message": "Invalid input types: target should be a string"
                 }), 400)
+            
+            if (
+                not isinstance(goal_value, int)
+            ):
+                app.logger.warning("Invalid input data types")
+                return make_response(jsonify({
+                    "status": "error",
+                    "message": "Invalid input types: goal_value should be an int"
+                }), 400)
+            
+            if (
+                not isinstance(goal_progress, int)
+            ):
+                app.logger.warning("Invalid input data types")
+                return make_response(jsonify({
+                    "status": "error",
+                    "message": "Invalid input types: goal_progress should be a float"
+                }), 400)
+            
+            if (
+                not isinstance(completed, bool)
+            ):
+                app.logger.warning("Invalid input data types")
+                return make_response(jsonify({
+                    "status": "error",
+                    "message": "Invalid input types: completed should be a bool"
+                }), 400)
 
-            app.logger.info(f"Adding goal: {target}")
-            Goals.create_goal(target=target)
+            app.logger.info(f"Adding goal: {target}, {goal_value}, {goal_progress}, completed = {completed}")
+            Goals.create_goal(target=target, goal_value=goal_value, goal_progress=goal_progress, completed=completed)
 
-            app.logger.info(f"goal added successfully: {target}")
+            app.logger.info(f"goal added successfully: {target}, {goal_value}, {goal_progress}, completed = {completed}")
             return make_response(jsonify({
                 "status": "success",
-                "message": f"goal with target: '{target}' added successfully"
+                "message": f"goal with target: '{target}', goal_value: '{goal_value}' added successfully"
             }), 201)
 
         except Exception as e:
@@ -403,9 +436,6 @@ def create_app(config_class=ProductionConfig) -> Flask:
     def get_all_goals() -> Response:
         """Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target.
 
-        TODO Query Parameter:
-            - sort_by_completed (bool, optional): If true, sort goals by completion.
-
         Returns:
             JSON response containing the list of goals.
 
@@ -415,11 +445,9 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             # Extract query parameter for sorting by play count
-            sort_by_completed = request.args.get('sort_by_completed', 'false').lower() == 'true'
-
             app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_completed={sort_by_completed})")
 
-            goals = Goals.get_all_goals(sort_by_copmleted=sort_by_completed)
+            goals = Goals.get_all_goals()
 
             app.logger.info(f"Successfully retrieved {len(goals)} goals from the catalog")
 
@@ -469,7 +497,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
 
             return make_response(jsonify({
                 "status": "success",
-                "message": "goal retrieved successfully",
+                "message": "Goal retrieved successfully",
                 "goal": goal
             }), 200)
 
@@ -598,7 +626,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
 
     @app.route('/api/add-goal-to-plan', methods=['POST']) # TODO take a look at this because this uses the compound key. perhaps change to get goal by id instead of compound key
     @login_required
-    def add_goal_to_plan() -> Response:
+    def add_goal_to_plan() -> Response: # TODO do we really need this????? probably delete because of compound key
         """Route to add a goal to the plan by compound key (artist, title, year).
 
         Expected JSON Input:
