@@ -108,6 +108,7 @@ def test_fetch_data_request_failure(mocker):
     with pytest.raises(RuntimeError, match="Request failed: Connection error"):
         fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest")
 
+
 def test_fetch_data_timeout(mocker):
     """Test handling of a timeout when calling API.
 
