@@ -45,15 +45,30 @@ def goal_pecs(session):
 
 def test_create_goal(session):
     """Test creating a new goal."""
-    Goals.create_goal("legs", 20, completed=False, goal_progress=0.0)
+    Goals.create_goal(target="legs", goal_value=20, goal_progress=0.0, completed=False)
     goal = session.query(Goals).filter_by(target="legs").first()
     assert goal is not None
     assert goal.target == "legs"
+    assert goal.goal_value == 20
+    assert goal.goal_progress == 0.0
+    assert not goal.completed
+
+def test_create_goal_duplicate(session, goal_biceps):
+    """Test creating a duplicate goal."""
+    with pytest.raises(ValueError, match="Goal with target 'biceps', goal_value '10'."):
+        Goals.create_goal(target="biceps", goal_value=10, goal_progress=2.0, completed=False)
 
 
-#duplicate
-    with pytest.raises(ValueError, match="already exists"):
-        Goals.create_goal("legs", 20, False, 0.0)
+def test_create_goal_mismatch_1(session):
+    """Test creating a goal with mismatched completion."""
+    with pytest.raises(ValueError, match="Goal completion mismatch."):
+        Goals.create_goal(target="legs", goal_value=20, goal_progress=0.0, completed=True)
+
+
+def test_create_goal_mismatch_2(session):
+    """Test creating a goal with mismatched completion."""
+    with pytest.raises(ValueError, match="Goal completion mismatch."):
+        Goals.create_goal(target="legs", goal_value=20, goal_progress=22.0, completed=False)
 
 
 @pytest.mark.parametrize("target, goal_value, goal_progress, completed", [
