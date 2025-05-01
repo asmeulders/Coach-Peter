@@ -20,7 +20,7 @@ def goal_biceps(session):
     return goal
 
 @pytest.fixture
-def goal_pecs(session):  # change name
+def goal_pecs(session):
     """Fixture for a pecs goal."""
     goal = Goals(
         target="pectorals", 

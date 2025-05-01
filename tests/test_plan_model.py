@@ -12,7 +12,7 @@ def plan_model():
 
 """Fixtures providing sample goals for the tests."""
 @pytest.fixture
-def goal_biceps(session): # change name
+def goal_biceps(session):
     """Fixture for a biceps goal."""
     goal = Goals(
        target = "biceps",
@@ -26,7 +26,7 @@ def goal_biceps(session): # change name
     return goal
 
 @pytest.fixture
-def goal_pecs(session):  # change name
+def goal_pecs(session):
     """Fixture for a pecs goal."""
     goal = Goals(
         target = "pectorals",
@@ -40,7 +40,7 @@ def goal_pecs(session):  # change name
     return goal
 
 @pytest.fixture
-def sample_plan(goal_biceps, goal_pecs): # make a sample playlist
+def sample_plan(goal_biceps, goal_pecs): # make a sample plan
     """Fixture for a sample plan."""
     return [goal_biceps, goal_pecs]
 
@@ -216,7 +216,8 @@ def test_get_plan_length(plan_model): # change to get number of goals?
 
 def test_get_plan_progress(plan_model, sample_plan):
     """Test getting the percent completed goals in a plan."""
-    percentage = plan_model.get_plan_progress(sample_plan)
+    plan_model.plan.extend(sample_plan)
+    percentage = plan_model.get_plan_progress()
     assert percentage == 0.500, "Expected plan progress to be 50% (0.500)"
 
 
