@@ -1,7 +1,7 @@
 import pytest
 
 from coach_peter.models.goal_model import Goals
-#may need to do something with mock because of api call
+from pytest_mock import MockerFixture
 
 # --- Fixtures ---
 
@@ -45,7 +45,7 @@ def goal_pecs(session):  # change name
 
 def test_create_goal(session):
     """Test creating a new goal."""
-    Goals.create_goal("legs", 20, 0.0, False)
+    Goals.create_goal("legs", 20, completed=False, goal_progress=0.0)
     goal = session.query(Goals).filter_by(target="legs").first()
     assert goal is not None
     assert goal.target == "legs"
@@ -53,7 +53,7 @@ def test_create_goal(session):
 
 #duplicate
     with pytest.raises(ValueError, match="already exists"):
-        Goals.create_goal("legs", 20, 0.0, False)
+        Goals.create_goal("legs", 20, False, 0.0)
 
 
 @pytest.mark.parametrize("target, goal_value, goal_progress, completed", [
@@ -76,7 +76,7 @@ def test_get_goal_by_id(goal_biceps):
     fetched = Goals.get_goal_by_id(goal_biceps.id)
     assert fetched.target == "biceps"
 
-def test_get_goal_by_id_not_found():
+def test_get_goal_by_id_not_found(app, session):
     """Test error when fetching nonexistent goal by ID."""
     with pytest.raises(ValueError, match="not found"):
         Goals.get_goal_by_id(999)
@@ -86,9 +86,9 @@ def test_get_goal_target(goal_biceps):
     fetched = Goals.get_goal_by_id(goal_biceps.id)
     assert fetched.target == "biceps"
 
-def test_get_goal_by_target_not_found():
+def test_get_goal_by_target_not_found(app, session):
     """Test error when fetching nonexistent goal by target."""
-    with pytest.raises(ValueError, match="not found"):
+    with pytest.raises(ValueError, match="No goals found with target 'nonexistent_target'"):
         Goals.get_goals_by_target("nonexistent_target")
 
 def test_get_goal_value(goal_biceps):
@@ -97,9 +97,9 @@ def test_get_goal_value(goal_biceps):
     assert isinstance(fetched.goal_value, int)
     assert fetched.goal_value == goal_biceps.goal_value
 
-def test_get_goal_by_goal_value_not_found():
+def test_get_goal_by_goal_value_not_found(app, session):
     """Test error when fetching nonexistent goal by goal_value."""
-    with pytest.raises(ValueError, match="not found"):
+    with pytest.raises(ValueError, match="No goals found with goal value '9999'"):
         Goals.get_goals_by_goal_value(9999)
 
 def test_get_goal_completed(goal_biceps):
@@ -116,7 +116,7 @@ def test_delete_goal_by_id(session, goal_pecs):
     Goals.delete_goal(goal_pecs.id)
     assert session.query(Goals).get(goal_pecs.id) is None
 
-def test_delete_goal_not_found():
+def test_delete_goal_not_found(app, session):
     """Test deleting a non-existent goal by ID."""
     with pytest.raises(ValueError, match="not found"):
         Goals.delete_goal(999)

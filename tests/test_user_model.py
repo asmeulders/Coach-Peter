@@ -1,6 +1,6 @@
 import pytest
 
-from playlist.models.user_model import Users
+from coach_peter.models.user_model import Users
 
 
 @pytest.fixture
