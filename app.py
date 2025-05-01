@@ -509,6 +509,283 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 "details": str(e)
             }), 500)
 
+    @app.route('/api/goals/by-target/<string:target>', methods=['GET'])
+    @login_required
+    def get_goals_by_target(target: str) -> Response:
+        """Route to retrieve all goals by target.
+
+        Path Parameter:
+            - target (str): The target muscle group.
+
+        Returns:
+            JSON response with a list of goals that match the target.
+
+        Raises:
+            400 error if no matching goals are found.
+            500 error if there is an issue retrieving the goals.
+        """
+        try:
+            app.logger.info(f"Request to retrieve goals by target: {target}")
+            goals = Goals.get_goals_by_target(target)
+            return make_response(jsonify({
+                "status": "success",
+                "goals": [g.id for g in goals] 
+            }), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal retrieval failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error retrieving goals by target: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+    @app.route('/api/goals/by-completed/<completed>', methods=['GET'])
+    @login_required
+    def get_goals_by_completed(completed: str) -> Response:
+        """Route to retrieve all goals by completion status.
+
+        Path Parameter:
+            - completed (str): Either 'true' or 'false'.
+
+        Returns:
+            JSON response with a list of matching goals.
+
+        Raises:
+            400 error for invalid boolean input or missing data.
+            500 error for unexpected database issues.
+        """
+        try:
+            app.logger.info(f"Request to retrieve goals by completion status: {completed}")
+            status = completed.lower() == 'true'
+            goals = Goals.get_goals_by_completed(status)
+            return make_response(jsonify({
+                "status": "success",
+                "goals": [g.id for g in goals]
+            }), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal retrieval failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error retrieving completed goals: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+    @app.route('/api/goals/by-value/<int:goal_value>', methods=['GET'])
+    @login_required
+    def get_goals_by_goal_value(goal_value: int) -> Response:
+        """Route to retrieve all goals by goal value.
+
+        Path Parameter:
+            - goal_value (int): The numeric goal value to filter by.
+
+        Returns:
+            JSON response with matching goals.
+
+        Raises:
+            400 error if no goals are found.
+            500 error if database issues occur.
+        """
+        try:
+            app.logger.info(f"Request to retrieve goals by goal value: {goal_value}")
+            goals = Goals.get_goals_by_goal_value(goal_value)
+            return make_response(jsonify({
+                "status": "success",
+                "goals": [g.id for g in goals]
+            }), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal retrieval failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Error retrieving goals by goal value: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+    @app.route('/api/update-goal/<int:goal_id>', methods=['PATCH'])
+    @login_required
+    def update_goal(goal_id: int) -> Response:
+        """Route to update a goal by ID.
+
+        Path Parameter:
+            - goal_id (int): The ID of the goal to update.
+
+        Expected JSON Input:
+            - target (str): Updated target.
+            - goal_value (int): Updated goal value.
+            - goal_progress (float): Updated progress.
+            - completed (bool): Updated completion status.
+
+        Returns:
+            JSON response with the updated goal or error.
+
+        Raises:
+            400 error for invalid input or if goal not found.
+            500 error for database issues.
+        """
+        try:
+            data = request.get_json()
+            updated_goal = Goals.update_goal(
+                goal_id,
+                target=data.get("target"),
+                goal_value=data.get("goal_value"),
+                goal_progress=data.get("goal_progress"),
+                completed=data.get("completed")
+            )
+            app.logger.info(f"Updated goal ID {goal_id} successfully.")
+            return make_response(jsonify({"status": "success", "goal": updated_goal.id}), 200)
+        except ValueError as e:
+            app.logger.warning(f"Update failed for goal {goal_id}: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error updating goal {goal_id}: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+    @app.route('/api/delete-goal-by-target/<string:target>', methods=['DELETE'])
+    @login_required
+    def delete_goal_by_target(target: str) -> Response:
+        """Route to delete a goal by target.
+
+        Path Parameter:
+            - target (str): The goal's target field.
+
+        Returns:
+            JSON response on successful deletion.
+
+        Raises:
+            400 error if goal is not found.
+            500 error on DB issues.
+        """
+        try:
+            Goals.delete_goal_by_target(target)
+            app.logger.info(f"Deleted goal with target {target}.")
+            return make_response(jsonify({"status": "success", "message": f"Goal with target '{target}' deleted."}), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal delete failed for target {target}: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error deleting goal by target {target}: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+
+    @app.route('/api/delete-goal-by-value/<int:goal_value>', methods=['DELETE'])
+    @login_required
+    def delete_goal_by_value(goal_value: int) -> Response:
+        """Route to delete a goal by goal value.
+
+        Path Parameter:
+            - goal_value (int): The value set for the goal.
+
+        Returns:
+            JSON response on successful deletion.
+
+        Raises:
+            400 error if goal is not found.
+            500 error on DB issues.
+        """
+        try:
+            Goals.delete_goal_by_goal_value(goal_value)
+            app.logger.info(f"Deleted goal with value {goal_value}.")
+            return make_response(jsonify({"status": "success", "message": f"Goal with value {goal_value} deleted."}), 200)
+        except ValueError as e:
+            app.logger.warning(f"Goal delete failed for value {goal_value}: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error deleting goal by value {goal_value}: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+
+    @app.route('/api/delete-goal-by-completed/<completed>', methods=['DELETE'])
+    @login_required
+    def delete_goal_by_completed(completed: str) -> Response:
+        """Route to delete a goal by completed status.
+
+        Path Parameter:
+            - completed (str): 'true' or 'false'.
+
+        Returns:
+            JSON response on successful deletion.
+
+        Raises:
+            400 error if goal is not found.
+            500 error on DB issues.
+        """
+        try:
+            status = completed.lower() == 'true'
+            Goals.delete_goal_by_completed(status)
+            app.logger.info(f"Deleted goal with completed status {status}.")
+            return make_response(jsonify({"status": "success", "message": f"Goal with completed={status} deleted."}), 200)
+        except ValueError as e:
+            app.logger.warning(f"Delete by completed failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Error deleting goal by completed: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+
+    @app.route('/api/goals/recommendations/<int:goal_id>', methods=['GET'])
+    @login_required
+    def get_exercise_recommendations(goal_id: int) -> Response:
+        """Route to get exercise recommendations for a goal.
+
+        Path Parameter:
+            - goal_id (int): The ID of the goal.
+
+        Returns:
+            JSON list of recommended exercises.
+
+        Raises:
+            400 if goal not found.
+            500 on external API or DB failure.
+        """
+        try:
+            recommendations = Goals.get_exercise_recommendations(goal_id)
+            app.logger.info(f"Retrieved exercise recommendations for goal {goal_id}.")
+            return make_response(jsonify({"status": "success", "recommendations": recommendations}), 200)
+        except ValueError as e:
+            app.logger.warning(f"Recommendation fetch failed: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error getting recommendations: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
+
+    @app.route('/api/goals/log-session/<int:goal_id>', methods=['POST'])
+    @login_required
+    def log_workout(goal_id: int) -> Response:
+        """Route to log a workout session for a goal.
+
+        Path Parameter:
+            - goal_id (int): The ID of the goal.
+
+        Expected JSON Input:
+            - amount (float): Progress amount.
+            - exercise_type (str): Exercise name.
+            - duration (int): Time in minutes.
+            - intensity (str): Intensity level.
+            - note (str, optional): Personal notes.
+
+        Returns:
+            JSON message with updated progress.
+
+        Raises:
+            400 if validation fails.
+            500 on DB error.
+        """
+        try:
+            data = request.get_json()
+            goal = Goals.get_goal_by_id(goal_id)
+            message = goal.log_workout_session(
+                amount=data.get("amount"),
+                exercise_type=data.get("exercise_type"),
+                duration=data.get("duration"),
+                intensity=data.get("intensity"),
+                note=data.get("note", "")
+            )
+            app.logger.info(f"Workout logged for goal {goal_id}: {message}")
+            return make_response(jsonify({"status": "success", "message": message}), 200)
+        except ValueError as e:
+            app.logger.warning(f"Workout log failed for goal {goal_id}: {e}")
+            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+        except Exception as e:
+            app.logger.error(f"Internal error logging workout for goal {goal_id}: {e}")
+            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+
 
     # @app.route('/api/get-goal-from-catalog-by-compound-key', methods=['GET']) TODO by target? but thats above so we should be fine
     # @login_required
