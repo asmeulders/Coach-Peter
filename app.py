@@ -301,7 +301,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         Expected JSON Input:
             - target (str): The goal's target muscle group.
             - goal_value (int): The goal's target to reach.
-            - goal_progress (float): The current progress towards the goal.
+            - goal_progress (float, int): The current progress towards the goal.
             - completed (bool): Boolean for if the goal is completed.
 
         Returns:
@@ -335,7 +335,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             if (
                 not isinstance(target, str)
             ):
-                app.logger.warning("Invalid input data types")
+                app.logger.warning("Invalid input data types - target")
                 return make_response(jsonify({
                     "status": "error",
                     "message": "Invalid input types: target should be a string"
@@ -344,25 +344,25 @@ def create_app(config_class=ProductionConfig) -> Flask:
             if (
                 not isinstance(goal_value, int)
             ):
-                app.logger.warning("Invalid input data types")
+                app.logger.warning("Invalid input data types - goal_value")
                 return make_response(jsonify({
                     "status": "error",
                     "message": "Invalid input types: goal_value should be an int"
                 }), 400)
             
             if (
-                not isinstance(goal_progress, int)
+                not isinstance(goal_progress, (float))
             ):
-                app.logger.warning("Invalid input data types")
+                app.logger.warning("Invalid input data types - goal_progress")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": "Invalid input types: goal_progress should be a float"
+                    "message": "Invalid input types: goal_progress should be a float or an int"
                 }), 400)
             
             if (
                 not isinstance(completed, bool)
             ):
-                app.logger.warning("Invalid input data types")
+                app.logger.warning("Invalid input data types - completed")
                 return make_response(jsonify({
                     "status": "error",
                     "message": "Invalid input types: completed should be a bool"

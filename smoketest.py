@@ -10,7 +10,7 @@ def run_smoketest():
     goal_biceps = {
         "target": "biceps",
         "goal_value": 40,
-        "goal_progress": 35,
+        "goal_progress": 35.0,
         "completed": False,
         "progress_notes": "[]"
     }
@@ -18,7 +18,7 @@ def run_smoketest():
     goal_pecs = {
         "target": "pectorals",
         "goal_value": 200,
-        "goal_progress": 225,
+        "goal_progress": 225.0,
         "completed": True,
         "progress_ntoes": "[]"
     }
