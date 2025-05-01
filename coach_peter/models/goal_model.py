@@ -54,8 +54,8 @@ class Goals(db.Model):
             raise ValueError("Target must be a non-empty string")
         if not self.goal_value or not isinstance(self.goal_value, int):
             raise ValueError("Goal value must be a valid integer.")
-        if self.goal_progress is not None and not isinstance(self.goal_progress, float):
-            raise ValueError("Goal progress must be a valid float.")
+        if self.goal_progress is not None and not isinstance(self.goal_progress, (float, int)):
+            raise ValueError("Goal progress must be a valid float or int.")
         if self.completed is None or not isinstance(self.completed, bool):
             raise ValueError("Completed must be either true or false.")
 
@@ -86,14 +86,14 @@ class Goals(db.Model):
 
     #TODO: Do i need to include nullable fields in this?
     @classmethod
-    def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Optional[float] = None) -> None:
+    def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Optional[float | int] = None) -> None:
         """
         Creates a new goal in the goals table using SQLAlchemy.
 
         Args:
             target (str): A target muscle group the user wants to work on.
             goal_value (int): A value the user wants to reach for a specific goal.
-            goal_progress (float): A value the user enters for their current progress.
+            goal_progress (float, int): A value the user enters for their current progress.
             completed (bool): If the user has completed the specific goal or not.
 
 
@@ -263,12 +263,12 @@ class Goals(db.Model):
 # Progress Notes 
 ###############################################
     @classmethod
-    def log_workout_session(self, amount: float, exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
+    def log_workout_session(self, amount: float | int, exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
         """
         Logs a workout session with progress and updates status.
 
         Args:
-            amount (float): The amount to add to goal progress.
+            amount (float, int): The amount to add to goal progress.
             exercise_type (str): The type of exercise performed (e.g., "Running").
             duration (int): The duration of the workout in minutes.
             intensity (str): The intensity of the workout (e.g., "Low", "Moderate", "High").
@@ -295,7 +295,7 @@ class Goals(db.Model):
 
         self.add_progress_note(workout_note)
 
-        percent = (self.goal_progress / self.goal_value) * 100
+        percent = ((float)(self.goal_progress) / self.goal_value) * 100
 
         if self.goal_progress >= self.goal_value:
             self.completed = True
@@ -528,7 +528,7 @@ class Goals(db.Model):
         goal_id: int,
         target: str = None,
         goal_value: int = None,
-        goal_progress: float = None,
+        goal_progress: float | int = None,
         completed: bool = None
     ) -> "Goals":
         """
@@ -538,7 +538,7 @@ class Goals(db.Model):
             goal_id (int): The ID of the goal to update.
             target (str, optional): The new target value.
             goal_value (int, optional): The new goal value.
-            goal_progress (float, optional): The new goal progress value.
+            goal_progress ((float, int), optional): The new goal progress value.
             completed (bool, optional): The new completion status.
 
         Returns:
@@ -568,8 +568,8 @@ class Goals(db.Model):
                 goal.goal_value = goal_value
 
             if goal_progress is not None:
-                if not isinstance(goal_progress, float):
-                    raise ValueError("goal_progress must be a float.")
+                if not isinstance(goal_progress, (float, int)):
+                    raise ValueError("goal_progress must be a float or an int.")
                 goal.goal_progress = goal_progress
 
             if completed is not None:
@@ -586,7 +586,7 @@ class Goals(db.Model):
             db.session.rollback()
             raise
 
-    def log_progress(self, amount: float) -> str:
+    def log_progress(self, amount: float | int) -> str:
         """
         Logs workout progress toward a goal, updates completion status, and calculates percentage progress.
 
@@ -607,7 +607,7 @@ class Goals(db.Model):
 
         self.goal_progress += amount
 
-        progress_percent = (self.goal_progress / self.goal_value) * 100
+        progress_percent = ((float)(self.goal_progress) / self.goal_value) * 100
 
         if self.goal_progress >= self.goal_value:
             self.completed = True
