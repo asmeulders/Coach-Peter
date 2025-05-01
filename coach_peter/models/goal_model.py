@@ -1,8 +1,6 @@
 import logging
-import json from sqlalchemy import Text
-
-
-
+import json 
+from sqlalchemy import Text
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from coach_peter.utils.api_utils import fetch_recommendation
@@ -63,10 +61,10 @@ class Goals(db.Model):
         #progress
         try:
             notes = json.loads(self.progress_notes)
-        if not isinstance(notes, list):
-            raise ValueError("Progress notes must be a JSON-formatted list.")
-        except (json.JSONDecodeError, TypeError):
-            raise ValueError("Progress notes must be a valid JSON-formatted string representing a list.")
+            if not isinstance(notes, list):
+                raise ValueError("Progress notes must be a JSON-formatted list.")
+            except (json.JSONDecodeError, TypeError):
+                raise ValueError("Progress notes must be a valid JSON-formatted string representing a list.")
 
         
         # does not allow an empty goal creation
