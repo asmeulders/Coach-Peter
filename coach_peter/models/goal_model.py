@@ -412,7 +412,7 @@ class Goals(db.Model):
                 logger.info(f"No goals found with goal value '{goal_value}'")
                 raise ValueError(f"No goals found with goal value '{goal_value}'")
 
-            logger.info(f"Successfully retrieved {len(goal_value)} goal(s) with goal value '{goal_value}'")
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with goal value '{goal_value}'")
             return goals
 
         except SQLAlchemyError as e:
@@ -443,7 +443,7 @@ class Goals(db.Model):
                 logger.info(f"No goals found with completion status '{completed}'")
                 raise ValueError(f"No goals found with completion status '{completed}'")
 
-            logger.info(f"Successfully retrieved {len(completed)} goal(s) with completion status '{completed}'")
+            logger.info(f"Successfully retrieved {len(goals)} goal(s) with completion status '{completed}'")
             return goals
 
         except SQLAlchemyError as e:
@@ -576,6 +576,9 @@ class Goals(db.Model):
                 if not isinstance(completed, bool):
                     raise ValueError("completed must be a boolean.")
                 goal.completed = completed
+
+            if goal_progress >= goal_value:
+                goal.completed = True
 
             db.session.commit()
             logger.info(f"Successfully updated goal with ID {goal_id}")
