@@ -37,12 +37,13 @@ def fetch_recommendation(target):
     Returns:
         list: List of exercises matching the target value.
     """
-    url = f"{BASE_URL}/exercises/target/{target}"
+    url = f"{BASE_URL}/exercises/bodyPart/{target}"
 
     exercises = fetch_data(url)
 
     if not exercises:
-        logger.warning(f"No exercises found for body part: {target}")
+        logger.error(f"No exercises found for body part: {target}")
+        raise ValueError(f"No exercises found for body part: {target}")
     else:
         logger.info(f"Found {len(exercises)} exercises for body part: {target}")
 
