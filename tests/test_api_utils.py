@@ -1,7 +1,10 @@
 import pytest
 import requests
+import os
 
-from api_utils import fetch_data, fetch_recommendation 
+from coach_peter.utils.api_utils import fetch_data, fetch_recommendation
+from pytest_mock import MockerFixture
+
 
 # RANDOM_NUMBER = 4
 
@@ -79,7 +82,7 @@ def test_fetch_data(mock_exerciseDB):
     requests.get.assert_called_once_with(
         url,
         headers = {
-            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+            "X-RapidAPI-Key": os.getenv("EXERCISE_DB_API_KEY"),
             "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
         },  
         params=params,
@@ -88,77 +91,7 @@ def test_fetch_data(mock_exerciseDB):
 
 #############################
 
-def test_fetch_data_request_failure(mocker):
-    """Test handling of a request failure when calling API.
 
-    """
-    
-    mock_response = mock_exerciseDB
-
-    
-    mock_response.json.return_value = [
-    {
-        "bodyPart": "chest",
-        "equipment": "body weight",
-        "gifUrl": "https://example.com/pushup.gif",
-        "id": "0001",
-        "name": "Push-up",
-        "target": "pectorals",
-        "secondaryMuscles": ["upper arms", "shoulders"]        
-    },
-    
-    {
-        "bodyPart": "chest",
-        "equipment": "barbell",
-        "gifUrl": "https://example.com/benchpress.gif",
-        "id": "0002",
-        "name": "Bench Press",
-        "target": "pectorals",
-        "secondaryMuscles": ["upper arms", "shoulders"] 
-        
-    }
-    ]
-
-    #Define test input
-    url = "https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest"
-    params = {"example": "param"}
-
-    #call the function to test
-    result = fetch_data(url, params=params)
-
-    # Assert that the result is the mocked exercise list
-    assert result == [
-    {
-        "bodyPart": "chest",
-        "equipment": "body weight",
-        "gifUrl": "https://example.com/pushup.gif",
-        "id": "0001",
-        "name": "Push-up",
-        "target": "pectorals",
-        "secondaryMuscles": ["upper arms", "shoulders"]        
-    },
-    
-    {
-        "bodyPart": "chest",
-        "equipment": "barbell",
-        "gifUrl": "https://example.com/benchpress.gif",
-        "id": "0002",
-        "name": "Bench Press",
-        "target": "pectorals",
-        "secondaryMuscles": ["upper arms", "shoulders"] 
-        
-    }
-    ]
-
-    requests.get.assert_called_once_with(
-        url,
-        headers = {
-            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
-            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
-        },  
-        params=params,
-        timeout=5
-    )
 
 #############################
 
@@ -172,7 +105,7 @@ def test_fetch_data_request_failure(mocker):
     # Simulate a request failure
     mocker.patch("requests.get", side_effect=requests.exceptions.RequestException("Connection error"))
 
-    with pytest.raises(RuntimeError, match="Request to random.org failed: Connection error"):
+    with pytest.raises(RuntimeError, match="Request failed: Connection error"):
         fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
 
 def test_fetch_data_timeout(mocker):
@@ -182,7 +115,7 @@ def test_fetch_data_timeout(mocker):
     # Simulate a timeout
     mocker.patch("requests.get", side_effect=requests.exceptions.Timeout)
 
-    with pytest.raises(RuntimeError, match="Request to ExerciseDB timed out."):
+    with pytest.raises(RuntimeError, match="Request timed out."):
         fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
 
 def test_fetch_recommendation_success(mock_exerciseDB):
@@ -193,7 +126,7 @@ def test_fetch_recommendation_success(mock_exerciseDB):
 
     """
 
-    mock_response = mock_requests_get
+    mock_response = mock_exerciseDB
     mock_response.json.return_value = [
     {
         "bodyPart": "chest",
@@ -229,21 +162,21 @@ def test_fetch_recommendation_success(mock_exerciseDB):
     requests.get.assert_called_once_with(
         "https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest",
         headers = {
-            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+            "X-RapidAPI-Key": os.getenv("EXERCISE_DB_API_KEY"),
             "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
         },  
-        params=params,
+        params=None,
         timeout=5
     )
 
-def test_invalid_fetch_recommendation(mock_requests_get):
+def test_invalid_fetch_recommendation(mock_exerciseDB):
     """
     Test that an unsupported body part results in a ValueError
     """
-    mock_response = mock_requests_get
+    mock_response = mock_exerciseDB
     mock_response.json.return_value = []
 
     target = "toes"
 
-    with pytest.raises(ValueError, match="Invalid or unsupported body part: toes"):
-        fetch_recommendation(body_part)
+    with pytest.raises(ValueError, match=f"No exercises found for body part: {target}"):
+        fetch_recommendation(target)
