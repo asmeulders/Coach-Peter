@@ -54,15 +54,15 @@ class Goals(db.Model):
             raise ValueError("Target must be a non-empty string")
         if not self.goal_value or not isinstance(self.goal_value, int):
             raise ValueError("Goal value must be a valid integer.")
-        if not self.goal_progress or (not isinstance(self.goal_progress, float) or not self.goal_progress.strip()):
-            raise ValueError("Goal progress must be a valid float.")
-        if not self.completed or not isinstance(self.completed, bool):
-            raise ValueError("Completed must be either true or false.")
         if self.goal_progress is not None and not isinstance(self.goal_progress, float):
             raise ValueError("Goal progress must be a valid float.")
+        if self.completed is None or not isinstance(self.completed, bool):
+            raise ValueError("Completed must be either true or false.")
 
 
         #progress
+        if self.goal_progress >= self.goal_value and not self.completed or self.goal_progress < self.goal_value and self.completed:
+            raise ValueError("Goal completion mismatch.")
         try:
             notes = json.loads(self.progress_notes)
             if not isinstance(notes, list):
@@ -93,6 +93,7 @@ class Goals(db.Model):
         Args:
             target (str): A target muscle group the user wants to work on.
             goal_value (int): A value the user wants to reach for a specific goal.
+            goal_progress (float): A value the user enters for their current progress.
             completed (bool): If the user has completed the specific goal or not.
 
 
@@ -116,20 +117,26 @@ class Goals(db.Model):
             raise
 
         try:
+            # Check for existing goal with same compound key (target, goal_value)
+            existing = Goals.query.filter_by(target=target.strip(), goal_value=goal_value).first()
+            if existing:
+                logger.error(f"Goal already exists: {target} - {goal_value}")
+                raise ValueError(f"Goal with target '{target}', goal_value '{goal_value}'.")
+            
             db.session.add(goal)
             db.session.commit()
             logger.info(f"Goal successfully added with target(s): {target}, goal value: {goal_value}, goal progress: {goal_progress}, and completion status: {completed}.")
 
         # Duplicate
-        # except IntegrityError:
-        #     logger.error(f"Song already exists: {artist} - {title} ({year})")
-        #     db.session.rollback()
-        #     raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} already exists.")
+        except IntegrityError:
+            logger.error(f"Goal already exists: {target}, goal value: {goal_value}, goal progress: {goal_progress}, and completion status: {completed}.")
+            db.session.rollback()
+            raise ValueError(f"Goal already exists: {target}, goal value: {goal_value}, goal progress: {goal_progress}, and completion status: {completed}.")
 
         except SQLAlchemyError as e:
             logger.error(f"Database error while creating goal: {e}")
             db.session.rollback()
-            raise
+            raise 
 
 ##############################################
 # Delete Goals
@@ -497,6 +504,10 @@ class Goals(db.Model):
                 {
                     "id": goal.id,
                     "target": goal.target,
+                    "goal_value": goal.goal_value,
+                    "goal_progress": goal.goal_progress,
+                    "completed": goal.completed,
+                    "progress_notes": goal.progress_notes
                 }
                 for goal in goals
             ]

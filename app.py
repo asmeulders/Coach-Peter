@@ -296,7 +296,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     @app.route('/api/create-goal', methods=['POST'])
     @login_required
     def add_goal() -> Response:
-        """Route to add a new goal to the catalog. TODO is catalog right word?
+        """Route to add a new goal to the plan.
 
         Expected JSON Input:
             - target (str): The goal's target muscle group.
@@ -415,11 +415,11 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             # Extract query parameter for sorting by play count
-            sort_by_target = request.args.get('sort_by_completed', 'false').lower() == 'true'
+            sort_by_completed = request.args.get('sort_by_completed', 'false').lower() == 'true'
 
-            app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_target={sort_by_target})")
+            app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_completed={sort_by_completed})")
 
-            goals = Goals.get_all_goals(sort_by_targett=sort_by_target)
+            goals = Goals.get_all_goals(sort_by_copmleted=sort_by_completed)
 
             app.logger.info(f"Successfully retrieved {len(goals)} goals from the catalog")
 
@@ -548,7 +548,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     #         }), 500)
 
 
-    # @app.route('/api/get-random-goal', methods=['GET']) TODO do we need this? probably not
+    # @app.route('/api/get-random-goal', methods=['GET'])
     # @login_required
     # def get_random_goal() -> Response:
     #     """Route to retrieve a random goal from the catalog.
