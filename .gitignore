@@ -1,4 +1,5 @@
 # ignore zone identifiers
 *Zone.Identifier
 .env
-meal_max_venv
+meal_max_venv/
+__pycache__/
