@@ -106,7 +106,8 @@ def test_fetch_data_request_failure(mocker):
     mocker.patch("requests.get", side_effect=requests.exceptions.RequestException("Connection error"))
 
     with pytest.raises(RuntimeError, match="Request failed: Connection error"):
-        fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest")
+    fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
+
 
 
 def test_fetch_data_timeout(mocker):
@@ -116,8 +117,9 @@ def test_fetch_data_timeout(mocker):
     # Simulate a timeout
     mocker.patch("requests.get", side_effect=requests.exceptions.Timeout)
 
-    with pytest.raises(RuntimeError, match="Request timed out."):
-        fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest")
+    with pytest.raises(RuntimeError, match="Request failed: Connection error"):
+    fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
+
 
 def test_fetch_recommendation_success(mock_exerciseDB):
 
