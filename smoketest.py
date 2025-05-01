@@ -15,6 +15,14 @@ def run_smoketest():
         "progress_notes": "[]"
     }
 
+    updated_biceps = {
+        "target": "biceps",
+        "goal_value": 40,
+        "goal_progress": 40.0,
+        "completed": True,
+        "progress_notes": "[]"
+    }
+
     goal_pecs = {
         "target": "pectorals",
         "goal_value": 200,
@@ -56,9 +64,10 @@ def run_smoketest():
     assert login_resp.json()["status"] == "success"
     print("Login successful")
 
-    create_goal_resp = session.post(f"{base_url}/create-goal", json=goal_biceps)
-    assert create_goal_resp.status_code == 201
-    assert create_goal_resp.json()["status"] == "success"
+    biceps_id = 1
+    create_biceps_resp = session.post(f"{base_url}/create-goal", json=goal_biceps)
+    assert create_biceps_resp.status_code == 201
+    assert create_biceps_resp.json()["status"] == "success"
     print("Boxer creation successful")
 
     # Change password
@@ -78,10 +87,67 @@ def run_smoketest():
     assert login_resp.json()["status"] == "success"
     print("Login with new password successful")
 
-    create_boxer_resp = session.post(f"{base_url}/create-goal", json=goal_pecs)
-    assert create_boxer_resp.status_code == 201
-    assert create_boxer_resp.json()["status"] == "success"
+
+    pecs_id = 2
+    create_pecs_resp = session.post(f"{base_url}/create-goal", json=goal_pecs)
+    assert create_pecs_resp.status_code == 201
+    assert create_pecs_resp.json()["status"] == "success"
     print("goal creation successful")
+
+
+    get_goal_by_id_resp = session.get(f"{base_url}/get-goal-from-catalog-by-id/{biceps_id}")
+    assert get_goal_by_id_resp.status_code == 200
+    assert get_goal_by_id_resp.json()["target"] == "biceps"
+    assert get_goal_by_id_resp.json()["status"] == "success"
+    print("goal retrieved successfully")
+
+
+    get_goal_by_target_resp = session.get(f"{base_url}/goals/by-target/{goal_biceps["target"]}")
+    assert get_goal_by_target_resp.status_code == 200
+    assert get_goal_by_target_resp.json()["goals"] == [biceps_id]
+    assert get_goal_by_target_resp.json()["status"] == "success"
+    print("goal retrieved successfully")
+
+
+    get_goal_by_completed_resp = session.get(f"{base_url}/goals/by-completed/{goal_pecs["completed"]}")
+    assert get_goal_by_completed_resp.status_code == 200
+    assert get_goal_by_completed_resp.json()["goals"] == [pecs_id]
+    assert get_goal_by_completed_resp.json()["status"] == "success"
+    print("goal retrieved successfully")
+
+
+    get_goal_by_value_resp = session.get(f"{base_url}/goals/by-value/{goal_pecs["goal_value"]}")
+    assert get_goal_by_value_resp.status_code == 200
+    assert get_goal_by_value_resp.json()["goals"] == [pecs_id]
+    assert get_goal_by_value_resp.json()["status"] == "success"
+    print("goal retrieved successfully")
+
+
+    update_goal_resp = session.patch(f"{base_url}/update-goal/{biceps_id}", json=updated_biceps)
+    assert update_goal_resp.status_code == 200
+    assert update_goal_resp.json()["status"] == "success"
+    assert update_goal_resp.json()["updated_fields"] == [updated_biceps["goal_progress"], updated_biceps["completed"]]
+    print("goal updated successfully")
+
+
+    get_all_goals_resp = session.get(f"{base_url}/get-all-goals-from-catalog")
+    assert get_all_goals_resp.status_code == 200
+    assert [get_all_goals_resp.json()["goals"][0]["id"],get_all_goals_resp.json()["goals"][1]["id"]] == [biceps_id, pecs_id]
+    assert get_all_goals_resp.json()["status"] == "success"
+    print("goals retrieved successfully")
+
+
+    delete_pecs_resp = session.delete(f"{base_url}/delete-goal/{pecs_id}")
+    assert delete_pecs_resp.status_code == 200
+    assert delete_pecs_resp.json()["status"] == "success"
+    print("goal deletion successful")
+
+
+    fake_id = 3
+    delete_fake_resp = session.delete(f"{base_url}/delete-goal/{fake_id}")
+    assert delete_fake_resp.status_code == 500
+    assert delete_fake_resp.json()["status"] == "error"
+    print("goal deletion failed as expected")
 
     # Log out
     logout_resp = session.post(f"{base_url}/logout")

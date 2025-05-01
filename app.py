@@ -52,7 +52,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
 
     plan_model = PlanModel()
 
-    @app.route('/api/health', methods=['GET'])
+    @app.route('/api/health', methods=['GET']) #
     def healthcheck() -> Response:
         """Health check route to verify the service is running.
 
@@ -72,7 +72,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     #
     #########################################################
 
-    @app.route('/api/create-user', methods=['PUT'])
+    @app.route('/api/create-user', methods=['PUT']) #
     def create_user() -> Response:
         """Register a new user account.
 
@@ -117,7 +117,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 "details": str(e)
             }), 500)
 
-    @app.route('/api/login', methods=['POST'])
+    @app.route('/api/login', methods=['POST']) #
     def login() -> Response:
         """Authenticate a user and log them in.
 
@@ -168,7 +168,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 "details": str(e)
             }), 500)
 
-    @app.route('/api/logout', methods=['POST'])
+    @app.route('/api/logout', methods=['POST']) #
     @login_required
     def logout() -> Response:
         """Log out the current user.
@@ -183,7 +183,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             "message": "User logged out successfully"
         }), 200)
 
-    @app.route('/api/change-password', methods=['POST'])
+    @app.route('/api/change-password', methods=['POST']) #
     @login_required
     def change_password() -> Response:
         """Change the password for the current user.
@@ -228,7 +228,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 "details": str(e)
             }), 500)
 
-    @app.route('/api/reset-users', methods=['DELETE'])
+    @app.route('/api/reset-users', methods=['DELETE']) #
     def reset_users() -> Response:
         """Recreate the users table to delete all users.
 
@@ -263,7 +263,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     #
     ##########################################################
 
-    @app.route('/api/reset-goals', methods=['DELETE'])
+    @app.route('/api/reset-goals', methods=['DELETE']) #
     def reset_goals() -> Response:
         """Recreate the goals table to delete goals.
 
@@ -293,7 +293,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/create-goal', methods=['POST'])
+    @app.route('/api/create-goal', methods=['POST']) #
     @login_required
     def add_goal() -> Response:
         """Route to create a new goal.
@@ -386,7 +386,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/delete-goal/<int:goal_id>', methods=['DELETE'])
+    @app.route('/api/delete-goal/<int:goal_id>', methods=['DELETE']) #
     @login_required
     def delete_goal(goal_id: int) -> Response:
         """Route to delete a goal by ID.
@@ -408,7 +408,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             # Check if the goal exists before attempting to delete
             goal = Goals.get_goal_by_id(goal_id)
             if not goal:
-                app.logger.warning(f"goal with ID {goal_id} not found.")
+                app.logger.warning(f"Goal with ID {goal_id} not found.")
                 return make_response(jsonify({
                     "status": "error",
                     "message": f"goal with ID {goal_id} not found"
@@ -431,7 +431,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/get-all-goals-from-catalog', methods=['GET'])
+    @app.route('/api/get-all-goals-from-catalog', methods=['GET']) #
     @login_required
     def get_all_goals() -> Response:
         """Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target.
@@ -445,7 +445,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             # Extract query parameter for sorting by play count
-            app.logger.info(f"Received request to retrieve all goals from catalog (sort_by_completed={sort_by_completed})")
+            app.logger.info(f"Received request to retrieve all goals from catalog")
 
             goals = Goals.get_all_goals()
 
@@ -466,7 +466,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/get-goal-from-catalog-by-id/<int:goal_id>', methods=['GET'])
+    @app.route('/api/get-goal-from-catalog-by-id/<int:goal_id>', methods=['GET']) #
     @login_required
     def get_goal_by_id(goal_id: int) -> Response:
         """Route to retrieve a goal by its ID.
@@ -498,7 +498,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             return make_response(jsonify({
                 "status": "success",
                 "message": "Goal retrieved successfully",
-                "goal": goal
+                "target": goal.target
             }), 200)
 
         except Exception as e:
@@ -509,7 +509,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 "details": str(e)
             }), 500)
 
-    @app.route('/api/goals/by-target/<string:target>', methods=['GET'])
+    @app.route('/api/goals/by-target/<string:target>', methods=['GET']) # 
     @login_required
     def get_goals_by_target(target: str) -> Response:
         """Route to retrieve all goals by target.
@@ -533,12 +533,18 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 200)
         except ValueError as e:
             app.logger.warning(f"Goal retrieval failed: {e}")
-            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+            return make_response(jsonify({
+                "status": "error",
+                  "message": str(e)
+            }), 400)
         except Exception as e:
             app.logger.error(f"Internal error retrieving goals by target: {e}")
-            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+            return make_response(jsonify({
+                "status": "error", 
+                "message": "Internal server error"
+            }), 500)
 
-    @app.route('/api/goals/by-completed/<completed>', methods=['GET'])
+    @app.route('/api/goals/by-completed/<string:completed>', methods=['GET']) #
     @login_required
     def get_goals_by_completed(completed: str) -> Response:
         """Route to retrieve all goals by completion status.
@@ -568,7 +574,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             app.logger.error(f"Internal error retrieving completed goals: {e}")
             return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
 
-    @app.route('/api/goals/by-value/<int:goal_value>', methods=['GET'])
+    @app.route('/api/goals/by-value/<int:goal_value>', methods=['GET']) #
     @login_required
     def get_goals_by_goal_value(goal_value: int) -> Response:
         """Route to retrieve all goals by goal value.
@@ -597,7 +603,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             app.logger.error(f"Error retrieving goals by goal value: {e}")
             return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
 
-    @app.route('/api/update-goal/<int:goal_id>', methods=['PATCH'])
+    @app.route('/api/update-goal/<int:goal_id>', methods=['PATCH']) # 
     @login_required
     def update_goal(goal_id: int) -> Response:
         """Route to update a goal by ID.
@@ -620,21 +626,46 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             data = request.get_json()
+            goal = Goals.get_goal_by_id(goal_id)
+
+            new_target = data.get("target")
+            new_goal_value = data.get("goal_value")
+            new_goal_progress = data.get("goal_progress")
+            new_completed = data.get("completed")
+
+            old_fields = [goal.target, goal.goal_value, goal.goal_progress, goal.completed]
+            new_fields = [new_target, new_goal_value, new_goal_progress, new_completed]
+            updated_fields = []
+
+            for i in range(len(old_fields)):
+                if old_fields[i] != new_fields[i]:
+                    updated_fields.append(new_fields[i])
+
             updated_goal = Goals.update_goal(
                 goal_id,
-                target=data.get("target"),
-                goal_value=data.get("goal_value"),
-                goal_progress=data.get("goal_progress"),
-                completed=data.get("completed")
+                target=new_target,
+                goal_value=new_goal_value,
+                goal_progress=new_goal_progress,
+                completed=new_completed
             )
             app.logger.info(f"Updated goal ID {goal_id} successfully.")
-            return make_response(jsonify({"status": "success", "goal": updated_goal.id}), 200)
+            return make_response(jsonify({
+                "status": "success", 
+                "goal": updated_goal.id,
+                "updated_fields": updated_fields
+            }), 200)
         except ValueError as e:
             app.logger.warning(f"Update failed for goal {goal_id}: {e}")
-            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+            return make_response(jsonify({
+                "status": "error", 
+                "message": str(e)
+            }), 400)
         except Exception as e:
             app.logger.error(f"Internal error updating goal {goal_id}: {e}")
-            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+            return make_response(jsonify({
+                "status": "error",
+                "message": "Internal server error"
+            }), 500)
 
     @app.route('/api/delete-goal-by-target/<string:target>', methods=['DELETE'])
     @login_required
