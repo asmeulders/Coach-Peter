@@ -16,11 +16,16 @@ def mock_exerciseDB(mocker):
     mocker.patch("requests.get", return_value=mock_response)
     return mock_response
 
+<<<<<<< Updated upstream
 
 def test_fetch_data(mock_exerciseDB):
     """Test fetching data from api
+=======
+>>>>>>> Stashed changes
 
+def test_fetch_data(mock_exerciseDB):
     """
+<<<<<<< Updated upstream
     mock_response = mock_exerciseDB
     mock_response.json.return_value = [
     {
@@ -90,7 +95,87 @@ def test_fetch_data(mock_exerciseDB):
 def test_fetch_data_request_failure(mocker):
     """Test handling of a request failure when calling API.
 
+=======
+    Test fetching exercise data from the ExerciseDB API
+>>>>>>> Stashed changes
     """
+    
+    mock_response = mock_exerciseDB
+
+    
+    mock_response.json.return_value = [
+    {
+        "bodyPart": "chest",
+        "equipment": "body weight",
+        "gifUrl": "https://example.com/pushup.gif",
+        "id": "0001",
+        "name": "Push-up",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"]        
+    },
+    
+    {
+        "bodyPart": "chest",
+        "equipment": "barbell",
+        "gifUrl": "https://example.com/benchpress.gif",
+        "id": "0002",
+        "name": "Bench Press",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"] 
+        
+    }
+    ]
+
+    #Define test input
+    url = "https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest"
+    params = {"example": "param"}
+
+    #call the function to test
+    result = fetch_data(url, params=params)
+
+    # Assert that the result is the mocked exercise list
+    assert result == [
+    {
+        "bodyPart": "chest",
+        "equipment": "body weight",
+        "gifUrl": "https://example.com/pushup.gif",
+        "id": "0001",
+        "name": "Push-up",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"]        
+    },
+    
+    {
+        "bodyPart": "chest",
+        "equipment": "barbell",
+        "gifUrl": "https://example.com/benchpress.gif",
+        "id": "0002",
+        "name": "Bench Press",
+        "target": "pectorals",
+        "secondaryMuscles": ["upper arms", "shoulders"] 
+        
+    }
+    ]
+
+    requests.get.assert_called_once_with(
+        url,
+        headers = {
+            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+        },  
+        params=params,
+        timeout=5
+    )
+
+#############################
+
+    
+
+def test_fetch_data_request_failure(mocker):
+    """
+    Test handling of a request failure when calling API.
+    """
+    
     # Simulate a request failure
     mocker.patch("requests.get", side_effect=requests.exceptions.RequestException("Connection error"))
 
@@ -108,8 +193,14 @@ def test_fetch_data_timeout(mocker):
         fetch_data("https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest")
 
 def test_fetch_recommendation_success(mock_exerciseDB):
+<<<<<<< Updated upstream
 
     """Test handling of an invalid response from random.org.
+=======
+
+    """Test that a valid body part returns a list of recommended exercises
+
+>>>>>>> Stashed changes
 
     """
     mock_response = mock_requests_get
@@ -135,6 +226,7 @@ def test_fetch_recommendation_success(mock_exerciseDB):
         
     }
     ]
+<<<<<<< Updated upstream
 
     target = "chest"
     exercises = fetch_recommendation(target)
@@ -152,6 +244,30 @@ def test_fetch_recommendation_success(mock_exerciseDB):
     )
 
 def test_invalid_fetch_recommendation(mock_requests_get):
+=======
+    #Input body part for recommendation
+    target = "chest"
+    exercises = fetch_recommendation(target)
+    
+    #validate the result
+    assert len(exercises) == 2
+    assert exercises[0]["name"] == "Push-up"
+    
+    requests.get.assert_called_once_with(
+        "https://exercisedb.p.rapidapi.com/exercises/bodyPart/chest",
+        headers = {
+            "X-RapidAPI-Key": EXERCISEDB_API_KEY,
+            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+        },  
+        params=params,
+        timeout=5
+    )
+
+def test_invalid_fetch_recommendation(mock_requests_get):
+    """
+    Test that an unsupported body part results in a ValueError
+    """
+>>>>>>> Stashed changes
     mock_response = mock_requests_get
     mock_response.json.return_value = []
 
