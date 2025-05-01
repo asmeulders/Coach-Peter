@@ -603,7 +603,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             app.logger.error(f"Error retrieving goals by goal value: {e}")
             return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
 
-    @app.route('/api/update-goal/<int:goal_id>', methods=['PATCH'])
+    @app.route('/api/update-goal/<int:goal_id>', methods=['PATCH']) # 
     @login_required
     def update_goal(goal_id: int) -> Response:
         """Route to update a goal by ID.
