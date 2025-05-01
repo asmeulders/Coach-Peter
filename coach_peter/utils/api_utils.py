@@ -41,7 +41,7 @@ def fetch_recommendation(target):
     Returns:
         list: List of exercises matching the target value.
     """
-    url = f"{BASE_URL}/exercises/bodyPart/{target}"
+    url = f"{BASE_URL}/exercises/target/{target}"
 
     exercises = fetch_data(url)
 

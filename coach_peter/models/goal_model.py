@@ -86,7 +86,7 @@ class Goals(db.Model):
 
     #TODO: Do i need to include nullable fields in this?
     @classmethod
-    def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Union[float, int, None] = None) -> None:
+    def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Optional[float | int] = None) -> None:
         """
         Creates a new goal in the goals table using SQLAlchemy.
 
@@ -263,7 +263,7 @@ class Goals(db.Model):
 # Progress Notes 
 ###############################################
     @classmethod
-    def log_workout_session(self, amount: Union[float, int], exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
+    def log_workout_session(self, amount: float | int, exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
         """
         Logs a workout session with progress and updates status.
 
@@ -528,7 +528,7 @@ class Goals(db.Model):
         goal_id: int,
         target: str = None,
         goal_value: int = None,
-        goal_progress: Union[float, int] = None,
+        goal_progress: float | int = None,
         completed: bool = None
     ) -> "Goals":
         """
@@ -586,7 +586,7 @@ class Goals(db.Model):
             db.session.rollback()
             raise
 
-    def log_progress(self, amount: Union[float, int]) -> str:
+    def log_progress(self, amount: float | int) -> str:
         """
         Logs workout progress toward a goal, updates completion status, and calculates percentage progress.
 
