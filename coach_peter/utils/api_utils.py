@@ -1,8 +1,11 @@
 import logging
 import os
 import requests
+from dotenv import load_dotenv
 
 from coach_peter.utils.logger import configure_logger
+
+load_dotenv()
 
 BASE_URL = os.getenv("EXERCISE_DB_BASE_URL", "https://exercisedb.p.rapidapi.com")
 EXERCISE_DB_API_KEY = os.getenv("EXERCISE_DB_API_KEY")
@@ -11,6 +14,7 @@ logger = logging.getLogger(__name__)
 configure_logger(logger)
 
 def fetch_data(url, params=None):
+    logger.info(f"{EXERCISE_DB_API_KEY}")
     headers = {
         "X-RapidAPI-Key": EXERCISE_DB_API_KEY,
         "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
@@ -37,7 +41,7 @@ def fetch_recommendation(target):
     Returns:
         list: List of exercises matching the target value.
     """
-    url = f"{BASE_URL}/exercises/bodyPart/{target}"
+    url = f"{BASE_URL}/exercises/target/{target}"
 
     exercises = fetch_data(url)
 
