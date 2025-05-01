@@ -21,12 +21,12 @@ def goal_biceps(session):
 
 @pytest.fixture
 def goal_pecs(session):
-    """Fixture for a pecs goal."""
+    """Fixture for a pecs goal.""" # CHECK FOR CHANGES FROM NUMBERS
     goal = Goals(
         target="pectorals", 
         goal_value=15, 
-        goal_progress=5.0, 
-        completed=False, 
+        goal_progress=15.0, 
+        completed=True, 
         progress_notes='[]'
         )
 
@@ -150,12 +150,20 @@ def test_update_goal(session, goal_biceps):
 
 
 # --- Log Progress ---
-def test_log_progress(session, goal_pecs):
+def test_log_progress_updated(session, goal_biceps): # CHECK FOR NUMBERS HERE
     """Test logging progress toward a goal."""
-    result = goal_pecs.log_progress(5.0)
-    assert "Progress updated" in result or "Goal completed" in result
-    session.refresh(goal_pecs)
-    assert goal_pecs.goal_progress == 10.0
+    result = goal_biceps.log_progress(5.0)
+    assert "Progress updated" in result
+    session.refresh(goal_biceps)
+    assert goal_biceps.goal_progress == 7.0
+
+
+def test_log_progress_completed(session, goal_biceps): # CHECK FOR NUMBERS HERE
+    """Test logging progress toward a goal."""
+    result = goal_biceps.log_progress(8.0)
+    assert "Goal completed" in result
+    session.refresh(goal_biceps)
+    assert goal_biceps.goal_progress == 10.0
 
 # --- Progress Notes ---
 
@@ -192,6 +200,24 @@ def test_get_all_goals(session, goal_biceps, goal_pecs):
     """Test retrieving all goals."""
     goals = Goals.get_all_goals()
     assert isinstance(goals, list)
-    assert any(goal["target"] == "biceps" for goal in goals)
+    expected = [
+        {
+            "id": goal_biceps.id,
+            "target": goal_biceps.target,
+            "goal_value": goal_biceps.goal_value,
+            "goal_progress": goal_biceps.goal_progress,
+            "completed": goal_biceps.completed,
+            "progress_notes": goal_biceps.progress_notes
+        },
+        {
+            "id": goal_pecs.id,
+            "target": goal_pecs.target,
+            "goal_value": goal_pecs.goal_value,
+            "goal_progress": goal_pecs.goal_progress,
+            "completed": goal_pecs.completed,
+            "progress_notes": goal_pecs.progress_notes
+        }
+    ]
+    assert goals == expected
 
 

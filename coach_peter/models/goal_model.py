@@ -497,6 +497,10 @@ class Goals(db.Model):
                 {
                     "id": goal.id,
                     "target": goal.target,
+                    "goal_value": goal.goal_value,
+                    "goal_progress": goal.goal_progress,
+                    "completed": goal.completed,
+                    "progress_notes": goal.progress_notes
                 }
                 for goal in goals
             ]
