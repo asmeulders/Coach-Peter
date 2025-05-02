@@ -65,18 +65,27 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f"User '{username}' logged in successfully"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         "username": "newuser123",
         "password": "securepassword"
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "User newuser123 logged in successfully"
     } 
+    ```
 
 
 4. Route: /logout
@@ -86,15 +95,20 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": "User logged out successfully"
         }
+        ```
     - Example Request: POST /api/logout
-    - Example Response: {
+    - Example Response: ```
+    {
         "status": "success",
         "message": "User logged out successfully"
     } 
+    ```
 
 
 5. Route: /change-password
@@ -104,17 +118,26 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": “Password changed successfully"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         "new_password”: “password123”
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Password changed successfully"
     } 
+    ```
 
 
 6. Route: /reset-users
@@ -124,14 +147,20 @@ Route Descriptions:
     - Response Format: DELETE /api/reset-users
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f"Users table recreated successfully"
         }
-    - Example Response: {
+        ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Users table recreated successfully"
     } 
+    ```
 
 
 7. Route: /reset-goals
@@ -141,14 +170,20 @@ Route Descriptions:
     - Response Format: DELETE /api/reset-goals
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f"Goals table recreated successfully"
         }
-    - Example Response: {
+        ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Goals table recreated successfully"
     } 
+    ```
 
 
 8. Route: /create-goal
@@ -162,20 +197,29 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 201
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f"goal with target: '{target}', goal_value: '{goal_value}' added successfully"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         "target": "biceps",
         goal_value: 120,
         goal_progress: 50.0
         completed: False
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         'status": "success",
         "message": "goal with target: biceps, goal_value: 120 added successfully"
     } 
+    ```
 
 
 9. Route: /delete-goal
@@ -185,17 +229,26 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f"goal with ID {goal_id} deleted successfully"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         goal_id: 120
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "goal with ID 120 deleted successfully"
     } 
+    ```
 
 
 10. Route: /get-all-goals-from-catalog
@@ -205,17 +258,23 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status': 'success',
             'message': 'goals retrieved successfully'
             'goals': goals
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/get-all-goals-from-catalog
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'message': 'goals retrieved successfully'
         ‘goals’: goals
     }
+    ```
 
 
 11. Route: /get-goal-from-catalog-by-id
@@ -225,17 +284,23 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status': 'success',
             'message': 'Goal retrieved successfully'
             ‘goal’: goal
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/get-goal-from-catalog-by-id
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'message': 'Goal retrieved successfully'
         ‘goal’: goal
     }
+    ```
 
 
 12. Route: /goals-by-target
@@ -245,15 +310,20 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```{
+
             'status': 'success',
             'goals': [g.id for g in goals]
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/goals-by-target
-    - Example Response: {
+    - Example Response: ```
+    {
         'status': 'success',
         'goals': [g.id for g in goals]
     }
+    ```
 
 
 13. Route: /goals-by-completed
@@ -263,15 +333,21 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status': 'success',
             'goals’: [g.id for g in goals]
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/goals-by-completed
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'goals’: [g.id for g in goals]
     }
+    ```
 
 
 14. Route: /goals-by-value
@@ -281,15 +357,21 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```{
+
             'status': 'success',
             'goals’: [g.id for g in goals]
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/health
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'Goals’: [g.id for g in goals]
     }
+    ```
 
 
 15. Route: /update-goal
@@ -304,21 +386,30 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "goal": updated_goal.id
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         goal_id: 10
         “target”: “biceps”
         goal_value: 120
         goal_progress: 50.0
         completed: False
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "goal": 10
     } 
+    ```
 
 
 16. Route: /delete-goal-by-target
@@ -328,17 +419,26 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f“Goal with target ‘{target} deleted.’"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         "target”: “biceps”
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Goal with target biceps deleted."
     } 
+    ```
 
 
 17. Route: /delete-goal-by-value
@@ -348,17 +448,26 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f“Goal with value ‘{goal_value} deleted.’"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         “goal_value”: 120
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Goal with value 120 deleted."
     }
+    ```
 
 
 18. Route: /delete-goal-by-completed
@@ -368,17 +477,26 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f“Goal with completed ‘{completed} deleted.’"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         "completed”: True
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Goal with completed true biceps deleted."
     }
+    ```
 
 
 19. Route: /goals/recommendations
@@ -388,15 +506,21 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status': 'success',
             'recommendations’: recommendations
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/goals/recommendations
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'recommendations’: recommendations
     }
+    ```
 
 
 20. Route: /log-session
@@ -412,11 +536,16 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": message
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         “goal_id”: 1
         “amount”: 50.0
         “exercise_type”: “bench”
@@ -424,10 +553,14 @@ Route Descriptions:
         “intensity”: “Hardcore”
         “note”: “Light work, no reaction.”
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": message
     } 
+    ```
 
 
 21. Route: /add-goal-to-plan
@@ -437,17 +570,26 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 201
-       -  Content: {
+       -  Content: 
+       ```
+       {
             'status": "success",
             "message": f“Successfully added goal to plan"
         }
-    - Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         “Target”: “biceps”
     }
-    - Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "Successfully added goal to plan"
     } 
+    ```
 
 
 22. Route: /clear-plan
@@ -457,14 +599,20 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
        - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": “plan cleared"
         }
-    - Example Response: {
+        ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "plan cleared"
     } 
+    ```
 
 
 23. Route: /get-all-goals-from-plan
@@ -474,15 +622,21 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status': 'success',
             'goals’: goals
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/get-all-goals-from-plan
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'goal’: goals
     }
+    ```
 
 
 24. Route: /get-plan-progress
@@ -492,12 +646,18 @@ Route Descriptions:
     - Response Format: JSON
     - Success Response Example: 
         - Code: 200
-        - Content: {
+        - Content: 
+        ```
+        {
             'status': 'success',
             'percentage’: percentage
         }
+        ```
     - Example cURL: curl -X GET http://localhost:5000/api/get-plan-progress
-    - Example Response: {
+    - Example Response: 
+    ```
+    {
         'status': 'success',
         'percentage’: percentage
     }
+    ```
