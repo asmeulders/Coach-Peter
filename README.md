@@ -5,21 +5,21 @@ Coach Peter is an app dedicated to tracking fitness goals and creating workout p
 Route Descriptions:
 
 Route: /health\
-    Request Type: GET
-    Purpose: Verifies the service is running by checking route
-    Request Body: No parameters required
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Verifies the service is running by checking route
+    - Request Body: No parameters required
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: ```{
             'status': 'success',
             'message': 'Service is running'
-        }
-    Example cURL: curl -X GET http://localhost:5000/api/health
-    Example Response: {
+        }```
+    - Example cURL: curl -X GET http://localhost:5000/api/health
+    - Example Response: ```{
         'status': 'success',
         'message': 'Service is running'
-    }
+    }```
 
 
 Route: /create-user
