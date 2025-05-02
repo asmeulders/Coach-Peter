@@ -261,7 +261,6 @@ class Goals(db.Model):
 ###############################################
 # Progress Notes 
 ###############################################
-    @classmethod
     def log_workout_session(self, amount: Union[float, int], exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
         """
         Logs a workout session with progress and updates status.
@@ -280,6 +279,7 @@ class Goals(db.Model):
         Returns:
             str: A message indicating progress update or completion.
         """
+        logger.info("Logging workout session...")
         if amount <= 0:
             raise ValueError("Progress amount must be positive.")
 
@@ -292,7 +292,7 @@ class Goals(db.Model):
         if note:
             workout_note += f" | Note: {note}"
 
-        self.add_progress_note(workout_note)
+        logger.info(workout_note)
 
         percent = ((float)(self.goal_progress) / self.goal_value) * 100
 
@@ -309,6 +309,7 @@ class Goals(db.Model):
     # Helper methods
     def get_progress_notes(self) -> list[str]:
         """Returns progress notes as a list of strings."""
+        logger.info("Getting previous progress notes...")
         try:
             return json.loads(self.progress_notes or "[]")
         except (TypeError, json.JSONDecodeError):
@@ -317,6 +318,7 @@ class Goals(db.Model):
     def add_progress_note(self, note: str) -> None:
         """Appends a note to the progress_notes list."""
         notes = self.get_progress_notes()
+        logger.info("Adding new progress notes...")
         notes.append(note)
         self.progress_notes = json.dumps(notes)
 

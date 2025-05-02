@@ -766,7 +766,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
         """
         try:
             recommendations = Goals.get_exercise_recommendations(goal_id)
-            app.logger.info(f"Retrieved exercise recommendations for goal {goal_id}.")
+            app.logger.info(f"Retrieved exercise recommendations for goal {goal_id}. {recommendations}")
             return make_response(jsonify({
                 "status": "success",
                 "recommendations": recommendations
@@ -785,7 +785,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/goals/log-session/<int:goal_id>', methods=['POST'])
+    @app.route('/api/goals/log-session/<int:goal_id>', methods=['POST']) #
     @login_required
     def log_workout(goal_id: int) -> Response:
         """Route to log a workout session for a goal.

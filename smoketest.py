@@ -117,6 +117,19 @@ def run_smoketest():
     print("goal added to plan successfully")
 
 
+    get_rec_resp = session.get(f"{base_url}/goals/recommendations/{pecs_id}")
+    assert get_rec_resp.status_code == 200
+    assert get_rec_resp.json()["status"] == "success"
+    assert get_rec_resp.json()["recommendations"] == [{'bodyPart': 'chest', 'equipment': 'leverage machine', 'gifUrl': 'https://v2.exercisedb.io/image/M1vEH1gTLk2nxf', 'id': '0009', 'name': 'assisted chest dip (kneeling)', 'target': 'pectorals', 'secondaryMuscles': ['triceps', 'shoulders'], 'instructions': ['Adjust the machine to your desired height and secure your knees on the pad.', 'Grasp the handles with your palms facing down and your arms fully extended.', 'Lower your body by bending your elbows until your upper arms are parallel to the floor.', 'Pause for a moment, then push yourself back up to the starting position.', 'Repeat for the desired number of repetitions.']}]
+    print("recommendation retrieved successfully")
+
+    log_workout_resp = session.post(f"{base_url}/goals/log-session/{pecs_id}", json=example_workout)
+    assert log_workout_resp.status_code == 200
+    assert log_workout_resp.json()["status"] == "success"
+    assert log_workout_resp.json()["message"] == "Goal completed! Total progress: 125.0%"
+    print("workout logged successfully")
+
+
     get_all_goals_from_plan_resp = session.get(f"{base_url}/get-all-goals-from-plan")
     assert get_all_goals_from_plan_resp.status_code == 200
     assert get_all_goals_from_plan_resp.json()["status"] == "success"
@@ -170,21 +183,12 @@ def run_smoketest():
     assert update_goal_resp.json()["updated_fields"] == [updated_biceps["goal_progress"], updated_biceps["completed"]]
     print("goal updated successfully")
 
-
+    
     get_all_goals_resp = session.get(f"{base_url}/get-all-goals-from-catalog")
     assert get_all_goals_resp.status_code == 200
     assert [get_all_goals_resp.json()["goals"][0]["id"],get_all_goals_resp.json()["goals"][1]["id"]] == [biceps_id, pecs_id]
     assert get_all_goals_resp.json()["status"] == "success"
     print("goals retrieved successfully")
-
-    
-    # get_rec_resp = session.get(f"{base_url}/goals/recommendations/{pecs_id}")
-
-
-    # log_workout_resp = session.post(f"{base_url}/goals/log-session/{pecs_id}", json=example_workout)
-    # assert update_goal_resp.status_code == 200
-    # assert update_goal_resp.json()["status"] == "success"
-    # assert update_goal_resp.json()["message"] == "Push-up - 30 min - High | Note: Goal completed! Total progress: 125%"
 
 
     delete_pecs_resp = session.delete(f"{base_url}/delete-goal/{pecs_id}")
