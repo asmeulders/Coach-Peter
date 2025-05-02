@@ -184,34 +184,34 @@ Route Descriptions:
     - Request Body: goal_id (int): The ID of the goal to delete 
     - Response Format: JSON
     - Success Response Example: 
-        Code: 200
-        Content: {
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f"goal with ID {goal_id} deleted successfully"
         }
-    Example Request: {
+    - Example Request: {
         goal_id: 120
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "goal with ID 120 deleted successfully"
     } 
 
 
 10. Route: /get-all-goals-from-catalog
-    Request Type: GET
-    Purpose: Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target
-    Request Body: No parameters required
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target
+    - Request Body: No parameters required
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'message': 'goals retrieved successfully'
             'goals': goals
         }
-    Example cURL: curl -X GET http://localhost:5000/api/get-all-goals-from-catalog
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/get-all-goals-from-catalog
+    - Example Response: {
         'status': 'success',
         'message': 'goals retrieved successfully'
         ‘goals’: goals
@@ -219,19 +219,19 @@ Route Descriptions:
 
 
 11. Route: /get-goal-from-catalog-by-id
-    Request Type: GET
-    Purpose: Route to retrieve a goal by its ID
-    Request Body: No parameters required
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Route to retrieve a goal by its ID
+    - Request Body: No parameters required
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'message': 'Goal retrieved successfully'
             ‘goal’: goal
         }
-    Example cURL: curl -X GET http://localhost:5000/api/get-goal-from-catalog-by-id
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/get-goal-from-catalog-by-id
+    - Example Response: {
         'status': 'success',
         'message': 'Goal retrieved successfully'
         ‘goal’: goal
@@ -239,188 +239,184 @@ Route Descriptions:
 
 
 12. Route: /goals-by-target
-    Request Type: GET
-    Purpose: Route to retrieve all goals by target
-    Request Body: No parameters required
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Route to retrieve all goals by target
+    - Request Body: No parameters required
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'goals': [g.id for g in goals]
         }
-    Example cURL: curl -X GET http://localhost:5000/api/goals-by-target
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/goals-by-target
+    - Example Response: {
         'status': 'success',
         'goals': [g.id for g in goals]
     }
 
 
 13. Route: /goals-by-completed
-    Request Type: GET
-    Purpose: Route to retrieve all goals by completion status 
-    Request Body: No parameters required
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Route to retrieve all goals by completion status 
+    - Request Body: No parameters required
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'goals’: [g.id for g in goals]
         }
-    Example cURL: curl -X GET http://localhost:5000/api/goals-by-completed
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/goals-by-completed
+    - Example Response: {
         'status': 'success',
         'goals’: [g.id for g in goals]
     }
 
 
 14. Route: /goals-by-value
-    Request Type: GET
-    Purpose: Route to retrieve all goals by goal value
-    Request Body: No parameters required
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Route to retrieve all goals by goal value
+    - Request Body: No parameters required
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'goals’: [g.id for g in goals]
         }
-    Example cURL: curl -X GET http://localhost:5000/api/health
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/health
+    - Example Response: {
         'status': 'success',
         'Goals’: [g.id for g in goals]
     }
 
 
 15. Route: /update-goal
-    Request Type: PATCH
-    Purpose: Route to update a goal by ID
-    Request Body: 
-    goal_id (int): The ID of the goal to update
-    target (str): Updated target.
-    goal_value (int): Updated goal value.
-    goal_progress (float): Updated progress.
-    completed (bool): Updated completion status.
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: PATCH
+    - Purpose: Route to update a goal by ID
+    - Request Body: 
+    - goal_id (int): The ID of the goal to update
+    - target (str): Updated target.
+    - goal_value (int): Updated goal value.
+    - goal_progress (float): Updated progress.
+    - completed (bool): Updated completion status.
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "goal": updated_goal.id
         }
-    Example Request: {
+    - Example Request: {
         goal_id: 10
         “target”: “biceps”
         goal_value: 120
         goal_progress: 50.0
         completed: False
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "goal": 10
     } 
 
 
 16. Route: /delete-goal-by-target
-    Request Type: DELETE
-    Purpose: Route to delete a goal by target
-    Request Body: 
-    target (String): The goal’s target field
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: DELETE
+    - Purpose: Route to delete a goal by target
+    - Request Body: target (String): The goal’s target field
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f“Goal with target ‘{target} deleted.’"
         }
-    Example Request: {
+    - Example Request: {
         "target”: “biceps”
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Goal with target biceps deleted."
     } 
 
 
 17. Route: /delete-goal-by-value
-    Request Type: DELETE
-    Purpose: Route to delete a goal by goal value
-    Request Body: 
-    goal_value (int): The value set for the goal
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: DELETE
+    - Purpose: Route to delete a goal by goal value
+    - Request Body: goal_value (int): The value set for the goal
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f“Goal with value ‘{goal_value} deleted.’"
         }
-    Example Request: {
+    - Example Request: {
         “goal_value”: 120
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Goal with value 120 deleted."
     }
 
 
 18. Route: /delete-goal-by-completed
-    Request Type: DELETE
-    Purpose: Route to delete a goal by completion status
-    Request Body: 
-    completed (String): ‘true’ or ‘false’
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: DELETE
+    - Purpose: Route to delete a goal by completion status
+    - Request Body: completed (String): ‘true’ or ‘false’
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f“Goal with completed ‘{completed} deleted.’"
         }
-    Example Request: {
+    - Example Request: {
         "completed”: True
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Goal with completed true biceps deleted."
     }
 
 
 19. Route: /goals/recommendations
-    Request Type: GET
-    Purpose: Route to get exercise recommendations for a goal
-    Request Body: 
-    goal_id (int): The ID of the goal.
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Route to get exercise recommendations for a goal
+    - Request Body: goal_id (int): The ID of the goal.
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'recommendations’: recommendations
         }
-    Example cURL: curl -X GET http://localhost:5000/api/goals/recommendations
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/goals/recommendations
+    - Example Response: {
         'status': 'success',
         'recommendations’: recommendations
     }
 
 
 20. Route: /log-session
-    Request Type: POST
-    Purpose: Route to log a workout session for a goal
-    Request Body: 
-    goal_id (int): The ID of the goal
-    amount (float): Progress amount.
-    exercise_type (str): Exercise name.
-    duration (int): Time in minutes.
-    intensity (str): Intensity level.
-    note (str, optional): Personal notes.
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: POST
+    - Purpose: Route to log a workout session for a goal
+    - Request Body: 
+    - goal_id (int): The ID of the goal
+    - amount (float): Progress amount.
+    - exercise_type (str): Exercise name.
+    - duration (int): Time in minutes.
+    - intensity (str): Intensity level.
+    - note (str, optional): Personal notes.
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": message
         }
-    Example Request: {
+    - Example Request: {
         “goal_id”: 1
         “amount”: 50.0
         “exercise_type”: “bench”
@@ -428,81 +424,80 @@ Route Descriptions:
         “intensity”: “Hardcore”
         “note”: “Light work, no reaction.”
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": message
     } 
 
 
 21. Route: /add-goal-to-plan
-    Request Type: POST
-    Purpose: Route to add a goal to plan
-    Request Body: 
-    target (String): The targets of the goal
-    Response Format: JSON
-    Success Response Example: 
-        Code: 201
-        Content: {
+    - Request Type: POST
+    - Purpose: Route to add a goal to plan
+    - Request Body: target (String): The targets of the goal
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 201
+       -  Content: {
             'status": "success",
             "message": f“Successfully added goal to plan"
         }
-    Example Request: {
+    - Example Request: {
         “Target”: “biceps”
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Successfully added goal to plan"
     } 
 
 
 22. Route: /clear-plan
-    Request Type: POST
-    Purpose: Route to clear all goals from the plan
-    Request Body: No parameters needed
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: POST
+    - Purpose: Route to clear all goals from the plan
+    - Request Body: No parameters needed
+    - Response Format: JSON
+    - Success Response Example: 
+       - Code: 200
+        - Content: {
             'status": "success",
             "message": “plan cleared"
         }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "plan cleared"
     } 
 
 
 23. Route: /get-all-goals-from-plan
-    Request Type: GET
-    Purpose: Retrieve all goals in the plan
-    Request Body: No parameters needed
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Retrieve all goals in the plan
+    - Request Body: No parameters needed
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'goals’: goals
         }
-    Example cURL: curl -X GET http://localhost:5000/api/get-all-goals-from-plan
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/get-all-goals-from-plan
+    - Example Response: {
         'status': 'success',
         'goal’: goals
     }
 
 
 24. Route: /get-plan-progress
-    Request Type: GET
-    Purpose: Retrieve progress of goals in the plan
-    Request Body: No parameters needed 
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+    - Request Type: GET
+    - Purpose: Retrieve progress of goals in the plan
+    - Request Body: No parameters needed 
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status': 'success',
             'percentage’: percentage
         }
-    Example cURL: curl -X GET http://localhost:5000/api/get-plan-progress
-    Example Response: {
+    - Example cURL: curl -X GET http://localhost:5000/api/get-plan-progress
+    - Example Response: {
         'status': 'success',
         'percentage’: percentage
     }
