@@ -42,7 +42,7 @@ def goal_pecs(session):
 @pytest.fixture
 def sample_plan(goal_biceps, goal_pecs):
     """Fixture for a sample plan."""
-    return [goal_biceps, goal_pecs]
+    return [goal_biceps.id, goal_pecs.id]
 
 ##################################################
 # Add / Remove Goal Management Test Cases
@@ -96,8 +96,8 @@ def test_get_all_goals(plan_model, sample_plan, mocker):
     all_goals = plan_model.get_all_goals()
 
     assert len(all_goals) == 2
-    assert all_goals[0].id == 1
-    assert all_goals[1].id == 2
+    assert all_goals[0] == 1
+    assert all_goals[1] == 2
 
 
 def test_get_goal_by_goal_id(plan_model, goal_biceps, mocker):

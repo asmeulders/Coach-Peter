@@ -75,6 +75,10 @@ class PlanModel:
 
         goal_id = self.validate_goal_id(goal_id, check_in_plan=False)
 
+        if goal_id in self.plan:
+            logger.error(f"Goal with ID {goal_id} already exists in the plan")
+            raise ValueError(f"Goal with ID {goal_id} already exists in the plan")
+
         try:
             goal = self._get_goal_from_cache_or_db(goal_id)
         except ValueError as e:
@@ -187,7 +191,7 @@ class PlanModel:
         self.check_if_empty()
         completed = 0
         length = len(self.plan)
-        logger.info(f"Retrieving number of completed goals")
+        logger.info(f"Retrieving number of completed goals {self.plan}")
 
         for goal_id in self.plan:
             goal = Goals.get_goal_by_id(goal_id)
