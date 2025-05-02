@@ -31,6 +31,14 @@ def run_smoketest():
         "progress_ntoes": "[]"
     }
 
+    example_workout = {
+        "amount": 25.0,
+        "exercise_type": "Push-up",
+        "duration": 30,
+        "intensity": "High",
+        "note": ""
+    }
+
     health_response = requests.get(f"{base_url}/health")
     assert health_response.status_code == 200
     assert health_response.json()["status"] == "success"
@@ -102,6 +110,52 @@ def run_smoketest():
     print("goal retrieved successfully")
 
 
+    add_goal_to_plan_resp = session.post(f"{base_url}/add-goal-to-plan/{biceps_id}")
+    assert add_goal_to_plan_resp.status_code == 200
+    assert add_goal_to_plan_resp.json()["status"] == "success"
+    assert add_goal_to_plan_resp.json()["message"] == "goal biceps - 35.0 out of 40 added to plan"
+    print("goal added to plan successfully")
+
+
+    get_rec_resp = session.get(f"{base_url}/goals/recommendations/{pecs_id}")
+    assert get_rec_resp.status_code == 200
+    assert get_rec_resp.json()["status"] == "success"
+    assert get_rec_resp.json()["recommendations"] == [{'bodyPart': 'chest', 'equipment': 'leverage machine', 'gifUrl': 'https://v2.exercisedb.io/image/M1vEH1gTLk2nxf', 'id': '0009', 'name': 'assisted chest dip (kneeling)', 'target': 'pectorals', 'secondaryMuscles': ['triceps', 'shoulders'], 'instructions': ['Adjust the machine to your desired height and secure your knees on the pad.', 'Grasp the handles with your palms facing down and your arms fully extended.', 'Lower your body by bending your elbows until your upper arms are parallel to the floor.', 'Pause for a moment, then push yourself back up to the starting position.', 'Repeat for the desired number of repetitions.']}]
+    print("recommendation retrieved successfully")
+
+    log_workout_resp = session.post(f"{base_url}/goals/log-session/{pecs_id}", json=example_workout)
+    assert log_workout_resp.status_code == 200
+    assert log_workout_resp.json()["status"] == "success"
+    assert log_workout_resp.json()["message"] == "Goal completed! Total progress: 125.0%"
+    print("workout logged successfully")
+
+
+    get_all_goals_from_plan_resp = session.get(f"{base_url}/get-all-goals-from-plan")
+    assert get_all_goals_from_plan_resp.status_code == 200
+    assert get_all_goals_from_plan_resp.json()["status"] == "success"
+    assert get_all_goals_from_plan_resp.json()["goals"] == [biceps_id]
+    print("plan retrieved successfully")
+
+
+    get_plan_progress_resp = session.get(f"{base_url}/get-plan-progress")
+    assert get_plan_progress_resp.status_code == 200
+    assert get_plan_progress_resp.json()["status"] == "success"
+    assert get_plan_progress_resp.json()["percentage"] == 0.0
+    print("plan progress retrieved successfully")
+
+
+    remove_goal_from_plan_resp = session.delete(f"{base_url}/remove-goal-from-plan/{biceps_id}")
+    assert remove_goal_from_plan_resp.status_code == 200
+    assert remove_goal_from_plan_resp.json()["status"] == "success"
+    assert remove_goal_from_plan_resp.json()["message"] == f"Goal with id {biceps_id} removed from plan"
+    print("goal removed from plan successfully")
+
+
+    clear_plan_resp = session.post(f"{base_url}/clear-plan")
+    assert clear_plan_resp.status_code == 200
+    assert clear_plan_resp.json()["status"] == "success"
+    print("plan cleared successfully")
+
     get_goal_by_target_resp = session.get(f"{base_url}/goals/by-target/{goal_biceps["target"]}")
     assert get_goal_by_target_resp.status_code == 200
     assert get_goal_by_target_resp.json()["goals"] == [biceps_id]
@@ -129,7 +183,7 @@ def run_smoketest():
     assert update_goal_resp.json()["updated_fields"] == [updated_biceps["goal_progress"], updated_biceps["completed"]]
     print("goal updated successfully")
 
-
+    
     get_all_goals_resp = session.get(f"{base_url}/get-all-goals-from-catalog")
     assert get_all_goals_resp.status_code == 200
     assert [get_all_goals_resp.json()["goals"][0]["id"],get_all_goals_resp.json()["goals"][1]["id"]] == [biceps_id, pecs_id]

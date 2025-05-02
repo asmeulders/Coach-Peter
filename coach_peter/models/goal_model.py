@@ -7,16 +7,13 @@ from coach_peter.utils.api_utils import fetch_recommendation
 from typing import Optional, Union
 
 
-# Double check if correct db
 from coach_peter.db import db
 from coach_peter.utils.logger import configure_logger
-# from fitness.utils.api_utils import get_random
 
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
-#TODO####################################################################
 class Goals(db.Model):
     """Represents a goal in the plan.
 
@@ -35,7 +32,6 @@ class Goals(db.Model):
     goal_progress = db.Column(db.Float, nullable=True, default=0)
     completed = db.Column(db.Boolean, nullable=False)
     progress_notes = db.Column(Text, nullable=False, default="[]")
-    # play_count = db.Column(db.Integer, nullable=False, default=0)
 
     def validate(self) -> None:
         """Validates the goal instance before committing to the database.
@@ -49,7 +45,6 @@ class Goals(db.Model):
         # if self.recurring is not None and (not isinstance(self.recurring, str) or not self.recurring.strip()):
         #     raise ValueError("Recurring goal must be a non-empty string if provided.")
         
-        #TODO: Double check if this is checking if field is required and change target if so 
         if not self.target or not isinstance(self.target, str):
             raise ValueError("Target must be a non-empty string")
         if not self.goal_value or not isinstance(self.goal_value, int):
@@ -70,21 +65,6 @@ class Goals(db.Model):
         except (ValueError, TypeError):
             raise ValueError("Progress notes must be a valid JSON-formatted string representing a list.")
 
-        
-        # does not allow an empty goal creation
-        # if not any([self.nutritional, self.physical, self.recurring, self.one_time, self.upper_body, self.core, self.lower_body]):
-        #     raise ValueError("At least one goal field must be provided.")
-
-        # if not self.title or not isinstance(self.title, str):
-        #     raise ValueError("Title must be a non-empty string.")
-        # if not isinstance(self.year, int) or self.year <= 1900:
-        #     raise ValueError("Year must be an integer greater than 1900.")
-        # if not self.genre or not isinstance(self.genre, str):
-        #     raise ValueError("Genre must be a non-empty string.")
-        # if not isinstance(self.duration, int) or self.duration <= 0:
-        #     raise ValueError("Duration must be a positive integer.")
-
-    #TODO: Do i need to include nullable fields in this?
     @classmethod
     def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Union[float, int, None] = None) -> None:
         """
@@ -241,7 +221,6 @@ class Goals(db.Model):
             ValueError: If the goal with the given completion status does not exist.
             SQLAlchemyError: For any database-related issues.
         """
-        #TODO: Tailor this to true and false 
         logger.info(f"Received request to delete goal with completion status {completed}")
 
         try:
@@ -262,7 +241,6 @@ class Goals(db.Model):
 ###############################################
 # Progress Notes 
 ###############################################
-    @classmethod
     def log_workout_session(self, amount: Union[float, int], exercise_type: str, duration: int, intensity: str, note: str = "") -> str:
         """
         Logs a workout session with progress and updates status.
@@ -281,6 +259,7 @@ class Goals(db.Model):
         Returns:
             str: A message indicating progress update or completion.
         """
+        logger.info("Logging workout session...")
         if amount <= 0:
             raise ValueError("Progress amount must be positive.")
 
@@ -293,7 +272,7 @@ class Goals(db.Model):
         if note:
             workout_note += f" | Note: {note}"
 
-        self.add_progress_note(workout_note)
+        logger.info(workout_note)
 
         percent = ((float)(self.goal_progress) / self.goal_value) * 100
 
@@ -305,11 +284,11 @@ class Goals(db.Model):
 
         db.session.commit()
         return message
-    
 
     # Helper methods
     def get_progress_notes(self) -> list[str]:
         """Returns progress notes as a list of strings."""
+        logger.info("Getting previous progress notes...")
         try:
             return json.loads(self.progress_notes or "[]")
         except (TypeError, json.JSONDecodeError):
@@ -318,6 +297,7 @@ class Goals(db.Model):
     def add_progress_note(self, note: str) -> None:
         """Appends a note to the progress_notes list."""
         notes = self.get_progress_notes()
+        logger.info("Adding new progress notes...")
         notes.append(note)
         self.progress_notes = json.dumps(notes)
 
@@ -475,6 +455,7 @@ class Goals(db.Model):
 
         try:
             exercises = fetch_recommendation(goal.target)
+            logger.info(f"Successfully found {len(exercises)} exercise(s) for goal with ID {goal_id}")
             return exercises
         except RuntimeError as e:
             logger.error(f"Failed to fetch exercise recommendations: {e}")
@@ -577,7 +558,7 @@ class Goals(db.Model):
                     raise ValueError("completed must be a boolean.")
                 goal.completed = completed
 
-            if goal_progress >= goal_value:
+            if goal_progress is not None and goal_progress >= goal_value:
                 goal.completed = True
 
             db.session.commit()
