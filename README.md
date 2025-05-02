@@ -28,27 +28,36 @@ Route Descriptions:
     ```
 
 
-Route: /create-user
-    Request Type: PUT
-    Purpose: Registers a new user account
-    Request Body: 
-    username (String): User's chosen username. 
-    password (String): User's chosen password. 
-    Response Format: JSON
-    Success Response Example: 
-        Code: 201 
-        Content: {
+2. Route: /create-user
+    - Request Type: PUT
+    - Purpose: Registers a new user account
+    - Request Body: 
+    - username (String): User's chosen username. 
+    - password (String): User's chosen password. 
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 201 
+        - Content: 
+        ```
+        {
             'status": "success",
             "message": f"User '{username}' created successfully"
         }
-    Example Request: {
+        ```
+    - Example Request: 
+    ```
+    {
         "username": "newuser123",
         "password": "securepassword"
     }
-    Example Response: {
+    ```
+    - Example Response: 
+    ```
+    {
         "status": "success",
         "message": "User newuser123 created successfully”
-    } 
+    }
+    ``` 
 
 
 Route: /login
