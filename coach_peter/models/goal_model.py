@@ -84,7 +84,6 @@ class Goals(db.Model):
         # if not isinstance(self.duration, int) or self.duration <= 0:
         #     raise ValueError("Duration must be a positive integer.")
 
-    #TODO: Do i need to include nullable fields in this?
     @classmethod
     def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Union[float, int, None] = None) -> None:
         """
@@ -577,7 +576,7 @@ class Goals(db.Model):
                     raise ValueError("completed must be a boolean.")
                 goal.completed = completed
 
-            if goal_progress >= goal_value:
+            if goal_progress is not None and goal_progress >= goal_value:
                 goal.completed = True
 
             db.session.commit()

@@ -52,7 +52,7 @@ class PlanModel:
         Raises:
             ValueError: If the goal cannot be found in the database.
         """
-        now = time.time()
+        # now = time.time()
 
         if goal_id in self._goal_cache: # and self._ttl.get(goal_id, 0) > now:
             logger.debug(f"Goal ID {goal_id} retrieved from cache")
@@ -83,9 +83,9 @@ class PlanModel:
 
         goal_id = self.validate_goal_id(goal_id, check_in_plan=False)
 
-        if goal_id in self.plan:
-            logger.error(f"Goal with ID {goal_id} already exists in the plan")
-            raise ValueError(f"Goal with ID {goal_id} already exists in the plan")
+        # if goal_id in self.plan:
+        #     logger.error(f"Goal with ID {goal_id} already exists in the plan")
+        #     raise ValueError(f"Goal with ID {goal_id} already exists in the plan")
 
         try:
             goal = self._get_goal_from_cache_or_db(goal_id)
@@ -170,8 +170,9 @@ class PlanModel:
         Raises:
             ValueError: If the plan is empty.
         """
+        logger.info(f"Retrieving all goals in the plan: {self.plan}")
         self.check_if_empty()
-        logger.info("Retrieving all goals in the plan")
+        
         return [self._get_goal_from_cache_or_db(goal_id) for goal_id in self.plan]
 
     def get_goal_by_goal_id(self, goal_id: int) -> Goals:
@@ -249,11 +250,12 @@ class PlanModel:
             ValueError: If the plan is empty
         """
         self.check_if_empty()
-        completed: int = 0
+        completed = 0
         length = len(self.plan)
         logger.info(f"Retrieving number of completed goals")
 
-        for goal in self.plan:
+        for goal_id in self.plan:
+            goal = Goals.get_goal_by_id(goal_id)
             if goal.completed:
                 completed += 1
 

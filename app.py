@@ -767,13 +767,22 @@ def create_app(config_class=ProductionConfig) -> Flask:
         try:
             recommendations = Goals.get_exercise_recommendations(goal_id)
             app.logger.info(f"Retrieved exercise recommendations for goal {goal_id}.")
-            return make_response(jsonify({"status": "success", "recommendations": recommendations}), 200)
+            return make_response(jsonify({
+                "status": "success",
+                "recommendations": recommendations
+            }), 200)
         except ValueError as e:
             app.logger.warning(f"Recommendation fetch failed: {e}")
-            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+            return make_response(jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 400)
         except Exception as e:
             app.logger.error(f"Internal error getting recommendations: {e}")
-            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+            return make_response(jsonify({
+                "status": "error",
+                "message": "Internal server error"
+            }), 500)
 
 
     @app.route('/api/goals/log-session/<int:goal_id>', methods=['POST'])
@@ -809,13 +818,22 @@ def create_app(config_class=ProductionConfig) -> Flask:
                 note=data.get("note", "")
             )
             app.logger.info(f"Workout logged for goal {goal_id}: {message}")
-            return make_response(jsonify({"status": "success", "message": message}), 200)
+            return make_response(jsonify({
+                "status": "success",
+                "message": message
+            }), 200)
         except ValueError as e:
             app.logger.warning(f"Workout log failed for goal {goal_id}: {e}")
-            return make_response(jsonify({"status": "error", "message": str(e)}), 400)
+            return make_response(jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 400)
         except Exception as e:
             app.logger.error(f"Internal error logging workout for goal {goal_id}: {e}")
-            return make_response(jsonify({"status": "error", "message": "Internal server error"}), 500)
+            return make_response(jsonify({
+                "status": "error",
+                "message": "Internal server error"
+            }), 500)
 
 
     # @app.route('/api/get-goal-from-catalog-by-compound-key', methods=['GET']) TODO by target? but thats above so we should be fine
@@ -932,13 +950,13 @@ def create_app(config_class=ProductionConfig) -> Flask:
     ############################################################
 
 
-    @app.route('/api/add-goal-to-plan', methods=['POST']) # TODO take a look at this because this uses the compound key. perhaps change to get goal by id instead of compound key
+    @app.route('/api/add-goal-to-plan/<int:goal_id>', methods=['POST']) # 
     @login_required
-    def add_goal_to_plan() -> Response: # TODO do we really need this????? probably delete because of compound key
-        """Route to add a goal to the plan by compound key (artist, title, year).
+    def add_goal_to_plan(goal_id: int) -> Response:
+        """Route to add a goal to the plan by goal_id.
 
-        Expected JSON Input:
-            - target (str): The targets of the goal.
+        Path Parameter:
+            - goal_id (int): The ID of the goal.
 
         Returns:
             JSON response indicating success of the addition.
@@ -951,46 +969,23 @@ def create_app(config_class=ProductionConfig) -> Flask:
         try:
             app.logger.info("Received request to add goal to plan")
 
-            data = request.get_json()
-            required_fields = ["artist", "title", "year"]
-            missing_fields = [field for field in required_fields if field not in data]
-
-            if missing_fields:
-                app.logger.warning(f"Missing required fields: {missing_fields}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Missing required fields: {', '.join(missing_fields)}"
-                }), 400)
-
-            artist = data["artist"]
-            title = data["title"]
-
-            try:
-                year = int(data["year"])
-            except ValueError:
-                app.logger.warning(f"Invalid year format: {data['year']}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Year must be a valid integer"
-                }), 400)
-
-            app.logger.info(f"Looking up goal: {artist} - {title} ({year})")
-            goal = Goals.get_goal_by_compound_key(artist, title, year)
+            app.logger.info(f"Looking up goal with id {goal_id}")
+            goal = Goals.get_goal_by_id(goal_id=goal_id)
 
             if not goal:
-                app.logger.warning(f"Goal not found: {artist} - {title} ({year})")
+                app.logger.warning(f"Goal not found")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": f"goal '{title}' by {artist} ({year}) not found in catalog"
+                    "message": f"goal not found in catalog"
                 }), 400)
 
-            plan_model.add_goal_to_plan(goal)
-            app.logger.info(f"Successfully added goal to plan: {artist} - {title} ({year})")
+            plan_model.add_goal_to_plan(goal_id)
+            app.logger.info(f"Successfully added goal to plan: {goal.target} - {goal.goal_progress} out of {goal.goal_value}")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": f"goal '{title}' by {artist} ({year}) added to plan"
-            }), 201)
+                "message": f"goal {goal.target} - {goal.goal_progress} out of {goal.goal_value} added to plan"
+            }), 200)
 
         except Exception as e:
             app.logger.error(f"Failed to add goal to plan: {e}")
@@ -1001,15 +996,13 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
 
 
-    @app.route('/api/remove-goal-from-plan', methods=['DELETE']) # TODO compound key again
+    @app.route('/api/remove-goal-from-plan/<int:goal_id>', methods=['DELETE']) #
     @login_required
-    def remove_goal_by_goal_id() -> Response:
-        """Route to remove a goal from the plan by compound key (artist, title, year).
+    def remove_goal_by_goal_id(goal_id:int) -> Response:
+        """Route to remove a goal from the plan by goal_id.
 
-        Expected JSON Input:
-            - artist (str): The artist's name.
-            - title (str): The goal title.
-            - year (int): The year the goal was released.
+        Path Parameter:
+            - goal_id (int): The ID of the goal.
 
         Returns:
             JSON response indicating success of the removal.
@@ -1022,45 +1015,22 @@ def create_app(config_class=ProductionConfig) -> Flask:
         try:
             app.logger.info("Received request to remove goal from plan")
 
-            data = request.get_json()
-            required_fields = ["artist", "title", "year"]
-            missing_fields = [field for field in required_fields if field not in data]
-
-            if missing_fields:
-                app.logger.warning(f"Missing required fields: {missing_fields}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": f"Missing required fields: {', '.join(missing_fields)}"
-                }), 400)
-
-            artist = data["artist"]
-            title = data["title"]
-
-            try:
-                year = int(data["year"])
-            except ValueError:
-                app.logger.warning(f"Invalid year format: {data['year']}")
-                return make_response(jsonify({
-                    "status": "error",
-                    "message": "Year must be a valid integer"
-                }), 400)
-
-            app.logger.info(f"Looking up goal to remove: {artist} - {title} ({year})")
-            goal = Goals.get_goal_by_compound_key(artist, title, year)
+            app.logger.info(f"Looking up goal to remove: id - {goal_id}")
+            goal = Goals.get_goal_by_id(goal_id)
 
             if not goal:
-                app.logger.warning(f"goal not found in catalog: {artist} - {title} ({year})")
+                app.logger.warning(f"goal with id {goal_id} not found in catalog")
                 return make_response(jsonify({
                     "status": "error",
-                    "message": f"goal '{title}' by {artist} ({year}) not found in catalog"
+                    "message": f"goal with id {goal_id} not found in catalog"
                 }), 400)
 
             plan_model.remove_goal_by_goal_id(goal.id)
-            app.logger.info(f"Successfully removed goal from plan: {artist} - {title} ({year})")
+            app.logger.info(f"Successfully removed goal with id {goal_id} from plan")
 
             return make_response(jsonify({
                 "status": "success",
-                "message": f"goal '{title}' by {artist} ({year}) removed from plan"
+                "message": f"Goal with id {goal_id} removed from plan"
             }), 200)
 
         except Exception as e:
@@ -1115,7 +1085,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     #         }), 500)
 
 
-    @app.route('/api/clear-plan', methods=['POST'])
+    @app.route('/api/clear-plan', methods=['POST']) # 
     @login_required
     def clear_plan() -> Response:
         """Route to clear all goals from the plan.
@@ -1426,7 +1396,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
     ############################################################
 
 
-    @app.route('/api/get-all-goals-from-plan', methods=['GET'])
+    @app.route('/api/get-all-goals-from-plan', methods=['GET']) #
     @login_required
     def get_all_goals_from_plan() -> Response:
         """Retrieve all goals in the plan.
@@ -1442,11 +1412,12 @@ def create_app(config_class=ProductionConfig) -> Flask:
             app.logger.info("Received request to retrieve all goals from the plan.")
 
             goals = plan_model.get_all_goals()
+            goal_ids = [goal.id for goal in goals]
 
             app.logger.info(f"Successfully retrieved {len(goals)} goals from the plan.")
             return make_response(jsonify({
                 "status": "success",
-                "goals": goals
+                "goals": goal_ids
             }), 200)
 
         except Exception as e:
@@ -1458,7 +1429,7 @@ def create_app(config_class=ProductionConfig) -> Flask:
             }), 500)
         
     
-    @app.route('/api/get-plan-progress', methods=['GET'])
+    @app.route('/api/get-plan-progress', methods=['GET']) # 
     @login_required
     def get_plan_progress() -> Response:
         """Retrieve progress of goals in the plan.
