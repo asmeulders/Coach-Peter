@@ -83,6 +83,7 @@ class Users(db.Model, UserMixin):
             logger.info("User %s not found", username)
             raise ValueError(f"User {username} not found")
         hashed_password = hashlib.sha256((password + user.salt).encode()).hexdigest()
+        logger.info("Password is correct")
         return hashed_password == user.password
 
     @classmethod
@@ -131,6 +132,7 @@ class Users(db.Model, UserMixin):
         if not user:
             logger.info("User %s not found", username)
             raise ValueError(f"User {username} not found")
+        logger.info(f"User {username} has ID {user.id}")
         return user.id
 
     @classmethod

@@ -474,6 +474,7 @@ class Goals(db.Model):
 
         try:
             exercises = fetch_recommendation(goal.target)
+            logger.info(f"Successfully found {len(exercises)} exercise(s) for goal with ID {goal_id}")
             return exercises
         except RuntimeError as e:
             logger.error(f"Failed to fetch exercise recommendations: {e}")
