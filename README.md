@@ -31,9 +31,7 @@ Route Descriptions:
 2. Route: /create-user
     - Request Type: PUT
     - Purpose: Registers a new user account
-    - Request Body: 
-    - username (String): User's chosen username. 
-    - password (String): User's chosen password. 
+    - Request Body: username (String): User's chosen username. password (String): User's chosen password. 
     - Response Format: JSON
     - Success Response Example: 
         - Code: 201 
@@ -60,136 +58,132 @@ Route Descriptions:
     ``` 
 
 
-Route: /login
-    Request Type: POST
-    Purpose: Authenticates a user and logs them in
-    Request Body: 
-    username (String): User's chosen username. 
-    password (String): User's chosen password. 
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+3. Route: /login
+    - Request Type: POST
+    - Purpose: Authenticates a user and logs them in
+    - Request Body: username (String): User's chosen username. password (String): User's chosen password. 
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f"User '{username}' logged in successfully"
         }
-    Example Request: {
+    - Example Request: {
         "username": "newuser123",
         "password": "securepassword"
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "User newuser123 logged in successfully"
     } 
 
 
-Route: /logout
-    Request Type: POST
-    Purpose: Logs out the current user
-    Request Body: No parameters needed 
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+4. Route: /logout
+    - Request Type: POST
+    - Purpose: Logs out the current user
+    - Request Body: No parameters needed 
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": "User logged out successfully"
         }
-    Example Request: POST /api/logout
-    Example Response: {
+    - Example Request: POST /api/logout
+    - Example Response: {
         "status": "success",
         "message": "User logged out successfully"
     } 
 
 
-Route: /change-password
-    Request Type: POST
-    Purpose: Changes the password for the current user
-    Request Body: 
-    new_password (String): The new password to set
-    Response Format: JSON
-    Success Response Example: 
-        Code: 200
-        Content: {
+5. Route: /change-password
+    - Request Type: POST
+    - Purpose: Changes the password for the current user
+    - Request Body: new_password (String): The new password to set
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": “Password changed successfully"
         }
-    Example Request: {
+    - Example Request: {
         "new_password”: “password123”
     }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Password changed successfully"
     } 
 
 
-Route: /reset-users
-    Request Type: DELETE
-    Purpose: Recreate the users table to delete all users
-    Request Body: No parameters needed
-    Response Format: DELETE /api/reset-users
-    Success Response Example: 
-        Code: 200
-        Content: {
+6. Route: /reset-users
+    - Request Type: DELETE
+    - Purpose: Recreate the users table to delete all users
+    - Request Body: No parameters needed
+    - Response Format: DELETE /api/reset-users
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f"Users table recreated successfully"
         }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Users table recreated successfully"
     } 
 
 
-Route: /reset-goals
-    Request Type: DELETE
-    Purpose: Recreates the goals table to delete goals
-    Request Body: No parameters needed
-    Response Format: DELETE /api/reset-goals
-    Success Response Example: 
-        Code: 200
-        Content: {
+7. Route: /reset-goals
+    - Request Type: DELETE
+    - Purpose: Recreates the goals table to delete goals
+    - Request Body: No parameters needed
+    - Response Format: DELETE /api/reset-goals
+    - Success Response Example: 
+        - Code: 200
+        - Content: {
             'status": "success",
             "message": f"Goals table recreated successfully"
         }
-    Example Response: {
+    - Example Response: {
         "status": "success",
         "message": "Goals table recreated successfully"
     } 
 
 
-Route: /create-goal
-    Request Type: POST
-    Purpose: Route to create a new goal
-    Request Body: 
-    target (String): The goal's target muscle group.
-    goal_value (int): The goal's target to reach.
-    goal_progress (float, int): The current progress towards the goal.
-    completed (bool): Boolean for if the goal is completed.
-    Response Format: JSON
-    Success Response Example: 
-        Code: 201
-        Content: {
+8. Route: /create-goal
+    - Request Type: POST
+    - Purpose: Route to create a new goal
+    - Request Body: 
+    - target (String): The goal's target muscle group.
+    - goal_value (int): The goal's target to reach.
+    - goal_progress (float, int): The current progress towards the goal.
+    - completed (bool): Boolean for if the goal is completed.
+    - Response Format: JSON
+    - Success Response Example: 
+        - Code: 201
+        - Content: {
             'status": "success",
             "message": f"goal with target: '{target}', goal_value: '{goal_value}' added successfully"
         }
-    Example Request: {
+    - Example Request: {
         "target": "biceps",
         goal_value: 120,
         goal_progress: 50.0
         completed: False
     }
-    Example Response: {
+    - Example Response: {
         'status": "success",
         "message": "goal with target: biceps, goal_value: 120 added successfully"
     } 
 
 
-Route: /delete-goal
-    Request Type: DELETE
-    Purpose: Route to delete a goal by ID
-    Request Body: 
-    goal_id (int): The ID of the goal to delete 
-    Response Format: JSON
-    Success Response Example: 
+9. Route: /delete-goal
+    - Request Type: DELETE
+    - Purpose: Route to delete a goal by ID
+    - Request Body: goal_id (int): The ID of the goal to delete 
+    - Response Format: JSON
+    - Success Response Example: 
         Code: 200
         Content: {
             'status": "success",
@@ -204,7 +198,7 @@ Route: /delete-goal
     } 
 
 
-Route: /get-all-goals-from-catalog
+10. Route: /get-all-goals-from-catalog
     Request Type: GET
     Purpose: Route to retrieve all goals in the catalog (non-deleted), with an option to sort by target
     Request Body: No parameters required
@@ -224,7 +218,7 @@ Route: /get-all-goals-from-catalog
     }
 
 
-Route: /get-goal-from-catalog-by-id
+11. Route: /get-goal-from-catalog-by-id
     Request Type: GET
     Purpose: Route to retrieve a goal by its ID
     Request Body: No parameters required
@@ -244,7 +238,7 @@ Route: /get-goal-from-catalog-by-id
     }
 
 
-Route: /goals-by-target
+12. Route: /goals-by-target
     Request Type: GET
     Purpose: Route to retrieve all goals by target
     Request Body: No parameters required
@@ -262,7 +256,7 @@ Route: /goals-by-target
     }
 
 
-Route: /goals-by-completed
+13. Route: /goals-by-completed
     Request Type: GET
     Purpose: Route to retrieve all goals by completion status 
     Request Body: No parameters required
@@ -280,7 +274,7 @@ Route: /goals-by-completed
     }
 
 
-Route: /goals-by-value
+14. Route: /goals-by-value
     Request Type: GET
     Purpose: Route to retrieve all goals by goal value
     Request Body: No parameters required
@@ -298,9 +292,7 @@ Route: /goals-by-value
     }
 
 
-
-
-Route: /update-goal
+15. Route: /update-goal
     Request Type: PATCH
     Purpose: Route to update a goal by ID
     Request Body: 
@@ -329,7 +321,7 @@ Route: /update-goal
     } 
 
 
-Route: /delete-goal-by-target
+16. Route: /delete-goal-by-target
     Request Type: DELETE
     Purpose: Route to delete a goal by target
     Request Body: 
@@ -350,7 +342,7 @@ Route: /delete-goal-by-target
     } 
 
 
-Route: /delete-goal-by-value
+17. Route: /delete-goal-by-value
     Request Type: DELETE
     Purpose: Route to delete a goal by goal value
     Request Body: 
@@ -371,7 +363,7 @@ Route: /delete-goal-by-value
     }
 
 
-Route: /delete-goal-by-completed
+18. Route: /delete-goal-by-completed
     Request Type: DELETE
     Purpose: Route to delete a goal by completion status
     Request Body: 
@@ -392,7 +384,7 @@ Route: /delete-goal-by-completed
     }
 
 
-Route: /goals/recommendations
+19. Route: /goals/recommendations
     Request Type: GET
     Purpose: Route to get exercise recommendations for a goal
     Request Body: 
@@ -411,7 +403,7 @@ Route: /goals/recommendations
     }
 
 
-Route: /log-session
+20. Route: /log-session
     Request Type: POST
     Purpose: Route to log a workout session for a goal
     Request Body: 
@@ -442,7 +434,7 @@ Route: /log-session
     } 
 
 
-Route: /add-goal-to-plan
+21. Route: /add-goal-to-plan
     Request Type: POST
     Purpose: Route to add a goal to plan
     Request Body: 
@@ -463,7 +455,7 @@ Route: /add-goal-to-plan
     } 
 
 
-Route: /clear-plan
+22. Route: /clear-plan
     Request Type: POST
     Purpose: Route to clear all goals from the plan
     Request Body: No parameters needed
@@ -480,7 +472,7 @@ Route: /clear-plan
     } 
 
 
-Route: /get-all-goals-from-plan
+23. Route: /get-all-goals-from-plan
     Request Type: GET
     Purpose: Retrieve all goals in the plan
     Request Body: No parameters needed
@@ -498,7 +490,7 @@ Route: /get-all-goals-from-plan
     }
 
 
-Route: /get-plan-progress
+24. Route: /get-plan-progress
     Request Type: GET
     Purpose: Retrieve progress of goals in the plan
     Request Body: No parameters needed 
