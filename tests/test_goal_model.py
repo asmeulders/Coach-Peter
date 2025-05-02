@@ -21,7 +21,7 @@ def goal_biceps(session):
 
 @pytest.fixture
 def goal_pecs(session):
-    """Fixture for a pecs goal.""" # CHECK FOR CHANGES FROM NUMBERS
+    """Fixture for a pecs goal."""
     goal = Goals(
         target="pectorals", 
         goal_value=15, 
@@ -33,13 +33,6 @@ def goal_pecs(session):
     session.add(goal)
     session.commit()
     return goal
-
-
-# ################## TODO: change to goal ############
-# @pytest.fixture
-# def sample_goal(goal_biceps, goal_pecs): 
-#     """Fixture for a sample plan."""
-#     return [goal_biceps, goal_pecs]
 
 # --- Create Goal ---
 
@@ -84,7 +77,7 @@ def test_create_goal_invalid_data(target, goal_value, goal_progress, completed):
         Goals.create_goal(target, goal_value, goal_progress, completed)
 
 
-# --- Get Goal --- ADD MORE FOR ALL ###################################3
+# --- Get Goal ---
 
 def test_get_goal_by_id(goal_biceps):
     """Test fetching a goal by ID."""
@@ -165,7 +158,7 @@ def test_update_goal(session, goal_biceps):
 
 
 # --- Log Progress ---
-def test_log_progress_updated(session, goal_biceps): # CHECK FOR NUMBERS HERE
+def test_log_progress_updated(session, goal_biceps):
     """Test logging progress toward a goal."""
     result = goal_biceps.log_progress(5.0)
     assert "Progress updated" in result
@@ -173,7 +166,7 @@ def test_log_progress_updated(session, goal_biceps): # CHECK FOR NUMBERS HERE
     assert goal_biceps.goal_progress == 7.0
 
 
-def test_log_progress_completed(session, goal_biceps): # CHECK FOR NUMBERS HERE
+def test_log_progress_completed(session, goal_biceps):
     """Test logging progress toward a goal."""
     result = goal_biceps.log_progress(8.0)
     assert "Goal completed" in result

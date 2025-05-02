@@ -6,11 +6,7 @@ from coach_peter.utils.api_utils import fetch_data, fetch_recommendation
 from pytest_mock import MockerFixture
 
 
-# RANDOM_NUMBER = 4
-
-
 @pytest.fixture
-##def mock_random_org(mocker):
 def mock_exerciseDB(mocker):
     # Patch the requests.get call
     # requests.get returns an object, which we have replaced with a mock object
@@ -87,15 +83,7 @@ def test_fetch_data(mock_exerciseDB):
         },  
         params=params,
         timeout=5
-    )
-
-#############################
-
-
-
-#############################
-
-    
+    )    
 
 def test_fetch_data_request_failure(mocker):
     """

@@ -7,16 +7,13 @@ from coach_peter.utils.api_utils import fetch_recommendation
 from typing import Optional, Union
 
 
-# Double check if correct db
 from coach_peter.db import db
 from coach_peter.utils.logger import configure_logger
-# from fitness.utils.api_utils import get_random
 
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
-#TODO####################################################################
 class Goals(db.Model):
     """Represents a goal in the plan.
 
@@ -35,7 +32,6 @@ class Goals(db.Model):
     goal_progress = db.Column(db.Float, nullable=True, default=0)
     completed = db.Column(db.Boolean, nullable=False)
     progress_notes = db.Column(Text, nullable=False, default="[]")
-    # play_count = db.Column(db.Integer, nullable=False, default=0)
 
     def validate(self) -> None:
         """Validates the goal instance before committing to the database.
@@ -49,7 +45,6 @@ class Goals(db.Model):
         # if self.recurring is not None and (not isinstance(self.recurring, str) or not self.recurring.strip()):
         #     raise ValueError("Recurring goal must be a non-empty string if provided.")
         
-        #TODO: Double check if this is checking if field is required and change target if so 
         if not self.target or not isinstance(self.target, str):
             raise ValueError("Target must be a non-empty string")
         if not self.goal_value or not isinstance(self.goal_value, int):
@@ -69,20 +64,6 @@ class Goals(db.Model):
                 raise ValueError("Progress notes must be a JSON-formatted list.")
         except (ValueError, TypeError):
             raise ValueError("Progress notes must be a valid JSON-formatted string representing a list.")
-
-        
-        # does not allow an empty goal creation
-        # if not any([self.nutritional, self.physical, self.recurring, self.one_time, self.upper_body, self.core, self.lower_body]):
-        #     raise ValueError("At least one goal field must be provided.")
-
-        # if not self.title or not isinstance(self.title, str):
-        #     raise ValueError("Title must be a non-empty string.")
-        # if not isinstance(self.year, int) or self.year <= 1900:
-        #     raise ValueError("Year must be an integer greater than 1900.")
-        # if not self.genre or not isinstance(self.genre, str):
-        #     raise ValueError("Genre must be a non-empty string.")
-        # if not isinstance(self.duration, int) or self.duration <= 0:
-        #     raise ValueError("Duration must be a positive integer.")
 
     @classmethod
     def create_goal(cls, target: str, goal_value: int, completed: bool, goal_progress: Union[float, int, None] = None) -> None:
@@ -240,7 +221,6 @@ class Goals(db.Model):
             ValueError: If the goal with the given completion status does not exist.
             SQLAlchemyError: For any database-related issues.
         """
-        #TODO: Tailor this to true and false 
         logger.info(f"Received request to delete goal with completion status {completed}")
 
         try:
@@ -304,7 +284,6 @@ class Goals(db.Model):
 
         db.session.commit()
         return message
-    
 
     # Helper methods
     def get_progress_notes(self) -> list[str]:
