@@ -45,7 +45,7 @@ def test_fetch_data(mock_exerciseDB):
     }
     ]
 
-    url = "https://exercisedb.p.rapidapi.com/exercises/target/chest"
+    url = "https://exercisedb.p.rapidapi.com/exercises/target/chest/?limit=1"
     params = {"example": "param"}
 
     result = fetch_data(url, params=params)
@@ -94,7 +94,7 @@ def test_fetch_data_request_failure(mocker):
     mocker.patch("requests.get", side_effect=requests.exceptions.RequestException("Connection error"))
 
     with pytest.raises(RuntimeError, match="Request failed: Connection error"):
-        fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest")
+        fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest/?limit=1")
 
 
 def test_fetch_data_timeout(mocker):
@@ -105,7 +105,7 @@ def test_fetch_data_timeout(mocker):
     mocker.patch("requests.get", side_effect=requests.exceptions.Timeout)
 
     with pytest.raises(RuntimeError, match="Request timed out."):
-        fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest")
+        fetch_data("https://exercisedb.p.rapidapi.com/exercises/target/chest/?limit=1")
 
 def test_fetch_recommendation_success(mock_exerciseDB):
 
@@ -149,7 +149,7 @@ def test_fetch_recommendation_success(mock_exerciseDB):
     assert exercises[0]["name"] == "Push-up"
     
     requests.get.assert_called_once_with(
-        "https://exercisedb.p.rapidapi.com/exercises/target/chest",
+        "https://exercisedb.p.rapidapi.com/exercises/target/chest/?limit=1",
         headers = {
             "X-RapidAPI-Key": os.getenv("EXERCISE_DB_API_KEY"),
             "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
