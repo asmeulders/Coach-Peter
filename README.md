@@ -4,7 +4,7 @@ Coach Peter is an app dedicated to tracking fitness goals and creating workout p
 
 Route Descriptions:
 
-1. Route: /health\
+1. Route: /health
      - Request Type: GET
      - Purpose: Verifies the service is running by checking route
      - Request Body: No parameters required
